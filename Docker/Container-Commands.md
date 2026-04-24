@@ -1,4 +1,4 @@
-### 🐳 Part 2: Container Commands (Docker/Podman)
+### 🐳 Container Commands (Docker/Podman)
 
 > These commands apply to both Docker and Podman with minor differences 
 
