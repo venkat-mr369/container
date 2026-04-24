@@ -1,8 +1,8 @@
 --
 
-# 🐘 PostgreSQL 16 Streaming Replication (Podman Lab)
+### 🐘 PostgreSQL 16 Streaming Replication (Podman Lab)
 
-## 🧱 Architecture
+### 🧱 Architecture
 
 * Container 1 → `pg-primary`
 * Container 2 → `pg-standby`
@@ -11,7 +11,7 @@
 
 ---
 
-# ⚙️ Step 1: Create Network
+### ⚙️ Step 1: Create Network
 
 ```bash
 podman network create pg-net
@@ -19,7 +19,7 @@ podman network create pg-net
 
 ---
 
-# 📦 Step 2: Create Volumes
+### 📦 Step 2: Create Volumes
 
 ```bash
 podman volume create pg-primary-data
@@ -28,7 +28,7 @@ podman volume create pg-standby-data
 
 ---
 
-# 🚀 Step 3: Start Primary Container
+### 🚀 Step 3: Start Primary Container
 
 ```bash
 podman run -d `
@@ -47,7 +47,7 @@ podman ps
 
 ---
 
-# 🔧 Step 4: Configure Primary
+### 🔧 Step 4: Configure Primary
 
 ### 🔹 Enter container
 
@@ -151,7 +151,7 @@ exit
 
 ---
 
-# 🚀 Step 6: Start Standby Container
+### 🚀 Step 6: Start Standby Container
 
 ```bash
 podman run -d `
@@ -163,9 +163,9 @@ podman run -d `
 
 ---
 
-# ✅ Step 7: Verification
+### ✅ Step 7: Verification
 
-## 🔹 Check on Primary
+### 🔹 Check on Primary
 
 ```bash
 podman exec -it pg-primary psql -U postgres
@@ -182,7 +182,7 @@ SELECT client_addr, state, sync_state FROM pg_stat_replication;
 
 ---
 
-## 🔹 Check on Standby
+### 🔹 Check on Standby
 
 ```bash
 podman exec -it pg-standby psql -U postgres
@@ -200,7 +200,7 @@ true
 
 ---
 
-# 🧪 Step 8: Real Test
+### 🧪 Step 8: Real Test
 
 ## On Primary
 
@@ -221,7 +221,7 @@ SELECT * FROM test_rep;
 
 ---
 
-# 🔥 Deep Understanding (Important)
+### 🔥 Deep Understanding (Important)
 
 ## What actually happens:
 
@@ -232,7 +232,7 @@ SELECT * FROM test_rep;
 
 ---
 
-# ⚠️ Common Errors (You WILL face)
+### ⚠️ Common Errors (You WILL face)
 
 ### ❌ Connection refused
 
