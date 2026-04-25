@@ -182,7 +182,7 @@ SELECT
 
 ---
 
-# 🔥 Interview Killer Points
+### Interview Killer Points
 
 * Slots **prevent WAL deletion**
 * Slots can cause **disk full issues**
