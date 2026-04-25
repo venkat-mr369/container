@@ -85,7 +85,7 @@ SELECT pg_drop_replication_slot('test_slot');
 
 ---
 
-# 🔥 Scenario 2: Orphan Slot (Standby Deleted)
+### Scenario 2: Orphan Slot (Standby Deleted)
 
 ### 💡 Problem
 
@@ -161,7 +161,17 @@ FROM pg_replication_slots;
 ```sql
 SELECT now() - pg_last_xact_replay_timestamp();
 ```
+### To Verify 
 
+```sql
+---On Primary
+SELECT pg_current_wal_lsn();
+
+---On Secondary
+SELECT 
+  pg_last_wal_receive_lsn(),
+  pg_last_wal_replay_lsn();
+```
 ---
 
 ### ✅ Fix
