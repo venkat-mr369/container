@@ -1,15 +1,19 @@
-### 🐘 PostgreSQL Replication Slots — Real DBA Scenarios
+---
 
-### 🧠 What is Replication Slot (simple)
-
-A replication slot ensures WAL is NOT deleted until standby consumes it.
-
-👉 Good: prevents data loss
-👉 Bad: can fill disk if standby is down
+### 🐘 PostgreSQL Replication Slots — Real DBA Scenarios 
 
 ---
 
-### 🔍 Check Replication Slots
+## 🧠 What is Replication Slot (simple)
+
+A replication slot ensures WAL is **NOT deleted** until standby consumes it.
+
+👉 Good: prevents data loss
+👉 Bad: can **fill disk** if standby is down
+
+---
+
+## 🔍 Check Replication Slots (PRIMARY)
 
 ```sql
 SELECT slot_name, active, restart_lsn FROM pg_replication_slots;
@@ -17,51 +21,63 @@ SELECT slot_name, active, restart_lsn FROM pg_replication_slots;
 
 ---
 
-## 🔥 Scenario 1: WAL Files Filling Disk (Standby Down)
+# 🔥 Scenario 1: WAL Files Filling Disk (Standby Down)
 
-### Problem
+### 💡 Problem
 
 Standby is stopped → WAL not consumed → disk fills
 
 ---
 
-### Simulate
+### ▶️ Simulate
 
-On Primary:
+👉 **Run on PRIMARY**
 
 ```sql
 SELECT * FROM pg_create_physical_replication_slot('test_slot');
 ```
 
-Generate load:
+Generate WAL:
 
 ```sql
 CREATE TABLE t1 AS SELECT generate_series(1,1000000);
 ```
 
-Stop standby container.
+👉 **Run on HOST (stop standby)**
+
+```bash
+podman stop pg-standby
+```
 
 ---
 
-### Check issue
+### 🔍 Check Issue (PRIMARY)
 
 ```sql
 SELECT slot_name, active FROM pg_replication_slots;
 ```
 
+👉 active = false ❌
+
 ```sql
-SELECT pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) AS wal_retained FROM pg_replication_slots;
+SELECT pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) 
+AS wal_retained 
+FROM pg_replication_slots;
 ```
 
 👉 WAL keeps increasing 🔥
 
 ---
 
-### Fix
+### ✅ Fix
 
-Option 1: Start standby
+👉 Option 1 (best):
 
-Option 2: Drop slot (careful ⚠️)
+```bash
+podman start pg-standby
+```
+
+👉 Option 2 (careful ⚠️):
 
 ```sql
 SELECT pg_drop_replication_slot('test_slot');
@@ -69,25 +85,35 @@ SELECT pg_drop_replication_slot('test_slot');
 
 ---
 
-## 🔥 Scenario 2: Orphan Slot (Standby Removed but Slot Exists)
+# 🔥 Scenario 2: Orphan Slot (Standby Deleted)
 
-### Problem
+### 💡 Problem
 
-Standby deleted but slot still exists → WAL grows forever
+Standby removed but slot still exists → WAL grows forever
 
 ---
 
-### Check
+### ▶️ Simulate
+
+👉 Delete standby:
+
+```bash
+podman rm -f pg-standby
+```
+
+---
+
+### 🔍 Check (PRIMARY)
 
 ```sql
 SELECT slot_name, active FROM pg_replication_slots;
 ```
 
-👉 active = false
+👉 active = false ❌
 
 ---
 
-### Fix
+### ✅ Fix (PRIMARY)
 
 ```sql
 SELECT pg_drop_replication_slot('test_slot');
@@ -95,25 +121,45 @@ SELECT pg_drop_replication_slot('test_slot');
 
 ---
 
-## 🔥 Scenario 3: Slot Not Used by Standby
+# 🔥 Scenario 3: Slot Not Used by Standby
 
-### Problem
+### 💡 Problem
 
-Slot created but standby not configured to use it
+Slot created but standby is NOT using it
 
 ---
 
-### Check standby config
+### ▶️ Create slot (PRIMARY)
 
-```bash
-grep primary_slot_name /var/lib/postgresql/data/postgresql.auto.conf
+```sql
+SELECT pg_create_physical_replication_slot('test_slot');
 ```
 
-👉 If empty → slot unused
+---
+
+### 🔍 Check standby (STANDBY)
+
+```bash
+cat /var/lib/postgresql/data/postgresql.auto.conf
+```
+
+👉 If you don’t see:
+
+```conf
+primary_slot_name = 'test_slot'
+```
+
+👉 Then slot is unused ❌
 
 ---
 
-### Fix
+### ✅ Fix (STANDBY)
+
+Edit:
+
+```bash
+nano /var/lib/postgresql/data/postgresql.auto.conf
+```
 
 Add:
 
@@ -121,52 +167,90 @@ Add:
 primary_slot_name = 'test_slot'
 ```
 
-Restart standby
+Restart:
+
+```bash
+podman restart pg-standby
+```
 
 ---
 
-## 🔥 Scenario 4: Replication Lag Due to Slot
+### 🔍 Verify (PRIMARY)
 
-### Problem
+```sql
+SELECT slot_name, active FROM pg_replication_slots;
+```
+
+👉 active = true ✅
+
+---
+
+# 🔥 Scenario 4: Replication Lag + WAL Growth
+
+### 💡 Problem
 
 Standby slow → lag increases → WAL accumulation
 
 ---
 
-### Check lag
+### ▶️ Generate load (PRIMARY)
 
 ```sql
-SELECT client_addr, write_lag, flush_lag, replay_lag FROM pg_stat_replication;
+INSERT INTO t1 SELECT generate_series(1,500000);
 ```
 
 ---
 
-### Check slot lag
+### 🔍 Check lag (PRIMARY)
 
 ```sql
-SELECT slot_name, pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) FROM pg_replication_slots;
+SELECT client_addr, write_lag, flush_lag, replay_lag 
+FROM pg_stat_replication;
 ```
 
 ---
 
-### Fix
+### 🔍 Check WAL retained (PRIMARY)
 
-* Improve standby performance
-* Increase resources
-* Tune network
+```sql
+SELECT slot_name, 
+pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) 
+FROM pg_replication_slots;
+```
 
 ---
 
-## 🔥 Interview Killer Points
+### 🔍 Check delay (STANDBY)
 
-* Slots prevent WAL deletion
-* Slots can cause disk full
-* Always monitor pg_replication_slots
+```sql
+SELECT now() - pg_last_xact_replay_timestamp();
+```
+
+---
+
+### ✅ Fix
+
+* Increase standby CPU/RAM
+* Improve network
+* Tune WAL parameters
+
+---
+
+# 🔥 Interview Killer Points
+
+* Slots **prevent WAL deletion**
+* Slots can cause **disk full issues**
+* Always monitor:
+
+  * `pg_replication_slots`
+  * `pg_stat_replication`
 * Drop unused slots immediately
 
 ---
 
-### 🚀 Real DBA Checklist
+# 🚀 Real DBA Checklist
+
+👉 **Run on PRIMARY**
 
 ```sql
 SELECT * FROM pg_stat_replication;
@@ -174,6 +258,28 @@ SELECT * FROM pg_replication_slots;
 SELECT pg_current_wal_lsn();
 ```
 
+👉 **Run on STANDBY**
+
+```sql
+SELECT pg_is_in_recovery();
+SELECT pg_last_xact_replay_timestamp();
+```
+
 ---
 
-This is real production troubleshooting knowledge.
+## 🧠 Final Clarity
+
+If interviewer asks:
+
+👉 *“What is danger of replication slots?”*
+
+You say:
+
+➡️ “If standby is down or slow, WAL files accumulate and can fill disk because slots prevent deletion.”
+
+---
+
+If you want next level, I can give:
+
+👉 **“Disk full recovery scenario step-by-step”**
+👉 **“Slot vs wal_keep_size difference (very important interview)”**
