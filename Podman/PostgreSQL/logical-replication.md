@@ -1,56 +1,85 @@
-### 🐘 PostgreSQL Logical Replication (Podman Lab)
 
-### 🧱 Architecture
+**Already we have 2 containers (primary + standby)**
 
-* Publisher (Primary DB) → pg-publisher
-* Subscriber (Replica DB) → pg-subscriber
-* Network → pg-net
-* Replication Type → Logical (table-level)
+But here’s the important part:
+
+👉 **Logical replication is DIFFERENT from streaming replication**
+👉 So you must **treat both containers as independent databases**
 
 ---
 
-### ⚙️ Step 1: Create Network
+### 🧠 What changes in your current setup
+
+Right now:
+
+```text
+pg-primary  → streaming → pg-standby
+```
+
+For logical:
+
+```text
+pg-primary (publisher) → pg-standby (subscriber)
+```
+
+👉 BUT:
+
+* Standby must NOT be in recovery mode ❌
+* It must behave like a normal DB ✅
+
+---
+
+### ❗ Step 0: Break streaming replication (VERY IMPORTANT)
+
+👉 On standby container:
 
 ```bash
-podman network create pg-net
+podman exec -it pg-standby bash
+```
+
+Stop Postgres:
+
+```bash
+pg_ctl stop -D /var/lib/postgresql/data
+```
+
+Remove recovery:
+
+```bash
+rm /var/lib/postgresql/data/standby.signal
+```
+
+Start again:
+
+```bash
+pg_ctl start -D /var/lib/postgresql/data
 ```
 
 ---
 
-### 📦 Step 2: Create Volumes
+## ✅ Verify (STANDBY)
 
-```bash
-podman volume create pub-data
-podman volume create sub-data
+```sql
+SELECT pg_is_in_recovery();
 ```
+
+👉 Must be:
+
+```text
+false
+```
+
+✔️ Now it’s normal DB → ready for logical replication
 
 ---
 
-### 🚀 Step 3: Start Publisher
+# 🔧 Step 1: Enable logical on PRIMARY
 
 ```bash
-podman run -d --name pg-publisher --network pg-net -e POSTGRES_PASSWORD=postgres -v pub-data:/var/lib/postgresql/data postgres:16
+podman exec -it pg-primary bash
 ```
 
----
-
-### 🚀 Step 4: Start Subscriber
-
-```bash
-podman run -d --name pg-subscriber --network pg-net -e POSTGRES_PASSWORD=postgres -v sub-data:/var/lib/postgresql/data postgres:16
-```
-
----
-
-### 🔧 Step 5: Configure Publisher
-
-Enter container:
-
-```bash
-podman exec -it pg-publisher bash
-```
-
-Edit config:
+Edit:
 
 ```bash
 nano /var/lib/postgresql/data/postgresql.conf
@@ -64,35 +93,31 @@ max_replication_slots=10
 max_wal_senders=10
 ```
 
----
-
-Edit pg_hba.conf:
+Restart:
 
 ```bash
-nano /var/lib/postgresql/data/pg_hba.conf
+exit
+podman restart pg-primary
 ```
 
-Add:
+---
+
+# 🔧 Step 2: Allow connection
+
+Edit pg_hba.conf (PRIMARY):
 
 ```conf
 host all all 0.0.0.0/0 md5
 ```
 
----
-
-Restart publisher:
-
-```bash
-exit
-podman restart pg-publisher
-```
+Restart again.
 
 ---
 
-### 🧪 Step 6: Create Test Table (Publisher)
+# 🧪 Step 3: Create table (PRIMARY)
 
 ```bash
-podman exec -it pg-publisher psql -U postgres
+podman exec -it pg-primary psql -U postgres
 ```
 
 ```sql
@@ -102,35 +127,21 @@ INSERT INTO emp VALUES (1,'ram'),(2,'raj');
 
 ---
 
-### 🔗 Step 7: Create Publication (Publisher)
+# 🔗 Step 4: Create publication (PRIMARY)
 
 ```sql
 CREATE PUBLICATION mypub FOR TABLE emp;
 ```
 
-Check:
-
-```sql
-SELECT * FROM pg_publication;
-```
-
-Exit:
-
-```bash
-\q
-```
-
 ---
 
-### 🔧 Step 8: Configure Subscriber
-
-Enter:
+# 🧪 Step 5: Prepare subscriber (STANDBY)
 
 ```bash
-podman exec -it pg-subscriber psql -U postgres
+podman exec -it pg-standby psql -U postgres
 ```
 
-Create same table (MANDATORY):
+👉 Create same table:
 
 ```sql
 CREATE TABLE emp(id INT, name TEXT);
@@ -138,96 +149,78 @@ CREATE TABLE emp(id INT, name TEXT);
 
 ---
 
-### 🔗 Step 9: Create Subscription (Subscriber)
+# 🔗 Step 6: Create subscription (STANDBY)
 
 ```sql
 CREATE SUBSCRIPTION mysub
-CONNECTION 'host=pg-publisher port=5432 user=postgres password=postgres dbname=postgres'
+CONNECTION 'host=pg-primary port=5432 user=postgres password=postgres dbname=postgres'
 PUBLICATION mypub;
 ```
 
 ---
 
-### ✅ Step 10: Verify Replication
+# ✅ Step 7: Verify
 
-On Subscriber:
+On standby:
 
 ```sql
 SELECT * FROM emp;
 ```
 
-👉 You should see data from publisher
+👉 You should see:
+
+```text
+1 | ram
+2 | raj
+```
 
 ---
 
-### 🧪 Step 11: Real Test
+# 🧪 Step 8: Test
 
-On Publisher:
+On primary:
 
 ```sql
 INSERT INTO emp VALUES (3,'krishna');
 ```
 
-On Subscriber:
+On standby:
 
 ```sql
 SELECT * FROM emp;
 ```
 
-👉 Data should replicate
+👉 Data will come ✅
 
 ---
 
-### 🔍 Monitoring Commands
+# 🧠 Important clarity
 
-On Publisher:
-
-```sql
-SELECT * FROM pg_publication;
-SELECT * FROM pg_replication_slots;
-```
-
-On Subscriber:
-
-```sql
-SELECT * FROM pg_subscription;
-SELECT * FROM pg_stat_subscription;
-```
+| Streaming Replication | Logical Replication     |
+| --------------------- | ----------------------- |
+| standby = read-only   | subscriber = read-write |
+| full DB copy          | table-level             |
+| recovery mode         | normal DB               |
 
 ---
 
-### ⚠️ Common Issues
+# ⚠️ Biggest mistake people do
 
-Table not replicating:
+👉 They try logical replication on **standby in recovery mode**
 
-* Table not in publication
-
-Permission error:
-
-* Wrong user/password
-
-No data:
-
-* Table not created in subscriber
+That will NEVER work ❌
 
 ---
 
-### 🧠 Key Understanding
+# 🎯 Final understanding
 
-* Logical replication works at table level
-* Uses publications and subscriptions
-* Requires wal_level=logical
-* Does not require full cluster copy
+You are now using:
 
----
-
-### 🚀 Practice Ideas
-
-* Add multiple tables to publication
-* Test DELETE and UPDATE
-* Drop and recreate subscription
-* Create logical replication slot manually
+* same containers ✅
+* but switching mode from **physical → logical**
 
 ---
 
-This is production-level logical replication setup.
+
+* run BOTH (streaming + logical together 🔥)
+* or **real interview difference with use cases**
