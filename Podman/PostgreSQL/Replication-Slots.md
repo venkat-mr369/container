@@ -171,6 +171,14 @@ SELECT pg_current_wal_lsn();
 SELECT 
   pg_last_wal_receive_lsn(),
   pg_last_wal_replay_lsn();
+
+---On Secondary byte lag
+SELECT pg_size_pretty(
+  pg_wal_lsn_diff(
+    pg_last_wal_receive_lsn(),
+    pg_last_wal_replay_lsn()
+  )
+);
 ```
 ---
 
