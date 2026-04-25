@@ -1,13 +1,11 @@
---
-
 ### 🐘 PostgreSQL 16 Streaming Replication (Podman Lab)
 
 ### 🧱 Architecture
 
-* Container 1 → `pg-primary`
-* Container 2 → `pg-standby`
-* Network → `pg-net`
-* Volumes → persistent data
+* Primary: pg-primary
+* Standby: pg-standby
+* Network: pg-net
+* Volumes: persistent storage
 
 ---
 
@@ -28,18 +26,13 @@ podman volume create pg-standby-data
 
 ---
 
-### 🚀 Step 3: Start Primary Container
+### 🚀 Step 3: Start Primary Container (SAFE COMMAND)
 
 ```bash
-podman run -d `
-  --name pg-primary `
-  --network pg-net `
-  -e POSTGRES_PASSWORD=postgres `
-  -v pg-primary-data:/var/lib/postgresql/data `
-  postgres:16
+podman run -d --name pg-primary --network pg-net -e POSTGRES_PASSWORD=postgres -v pg-primary-data:/var/lib/postgresql/data postgres:16
 ```
 
-👉 Check:
+Verify:
 
 ```bash
 podman ps
@@ -49,7 +42,7 @@ podman ps
 
 ### 🔧 Step 4: Configure Primary
 
-### 🔹 Enter container
+Enter container:
 
 ```bash
 podman exec -it pg-primary bash
@@ -57,13 +50,13 @@ podman exec -it pg-primary bash
 
 ---
 
-### 🔹 Edit postgresql.conf
+Edit postgresql.conf:
 
 ```bash
-vi /var/lib/postgresql/data/postgresql.conf
+nano /var/lib/postgresql/data/postgresql.conf
 ```
 
-Add/modify:
+Update:
 
 ```conf
 listen_addresses='*'
@@ -74,21 +67,25 @@ wal_keep_size=512MB
 
 ---
 
-### 🔹 Edit pg_hba.conf
+Edit pg_hba.conf:
 
 ```bash
-vi /var/lib/postgresql/data/pg_hba.conf
+nano /var/lib/postgresql/data/pg_hba.conf
 ```
 
-Add this line at bottom:
+ADD THIS LINE (IMPORTANT - CORRECT FORMAT):
 
 ```conf
-host replication replicator 0.0.0.0/0 md5
+host replication replicator 10.89.0.0/24 md5
 ```
+
+Save:
+
+Ctrl + O → Enter → Ctrl + X
 
 ---
 
-### 🔹 Create replication user
+Create replication user:
 
 ```bash
 psql -U postgres
@@ -107,7 +104,7 @@ exit
 
 ---
 
-### 🔹 Restart Primary
+Restart primary:
 
 ```bash
 podman restart pg-primary
@@ -115,33 +112,41 @@ podman restart pg-primary
 
 ---
 
-# 📥 Step 5: Take Base Backup (Standby Setup)
+### 📥 Step 5: Standby Initialization (Base Backup)
 
-👉 Run temporary container:
+Remove old init container if exists:
 
 ```bash
-podman run -it --rm `
-  --name pg-standby-init `
-  --network pg-net `
-  -e PGPASSWORD=replica123 `
-  -v pg-standby-data:/var/lib/postgresql/data `
-  postgres:16 bash
+podman rm -f pg-standby-init
+```
+
+Run init container:
+
+```bash
+podman run -it --rm --name pg-standby-init --network pg-net -e PGPASSWORD=replica123 -v pg-standby-data:/var/lib/postgresql/data postgres:16 bash
 ```
 
 ---
 
-### 🔹 Inside container run:
+Inside container (VERY IMPORTANT STEPS):
+
+Clean directory (fix "not empty" error):
 
 ```bash
-pg_basebackup -h pg-primary -D /var/lib/postgresql/data `
-  -U replicator -Fp -Xs -P -R
+rm -rf /var/lib/postgresql/data/*
 ```
 
-👉 This is very important:
+Run base backup:
 
-* Copies primary data
-* Creates `standby.signal`
-* Adds connection config
+```bash
+pg_basebackup -h pg-primary -D /var/lib/postgresql/data -U replicator -Fp -Xs -P -R
+```
+
+Expected:
+
+```text
+progress: 100%
+```
 
 Exit:
 
@@ -154,35 +159,30 @@ exit
 ### 🚀 Step 6: Start Standby Container
 
 ```bash
-podman run -d `
-  --name pg-standby `
-  --network pg-net `
-  -v pg-standby-data:/var/lib/postgresql/data `
-  postgres:16
+podman run -d --name pg-standby --network pg-net -v pg-standby-data:/var/lib/postgresql/data postgres:16
 ```
 
 ---
 
 ### ✅ Step 7: Verification
 
-### 🔹 Check on Primary
+On Primary:
 
 ```bash
 podman exec -it pg-primary psql -U postgres
 ```
 
 ```sql
-SELECT client_addr, state, sync_state FROM pg_stat_replication;
+SELECT client_addr, state FROM pg_stat_replication;
 ```
 
-👉 Expect:
+Expected:
 
-* standby connected
 * state = streaming
 
 ---
 
-### 🔹 Check on Standby
+On Standby:
 
 ```bash
 podman exec -it pg-standby psql -U postgres
@@ -192,7 +192,7 @@ podman exec -it pg-standby psql -U postgres
 SELECT pg_is_in_recovery();
 ```
 
-👉 Output:
+Expected:
 
 ```text
 true
@@ -200,86 +200,61 @@ true
 
 ---
 
-### 🧪 Step 8: Real Test
+### 🧪 Step 8: Test Replication
 
-## On Primary
+On Primary:
 
 ```sql
 CREATE TABLE test_rep(id INT);
 INSERT INTO test_rep VALUES (1),(2),(3);
 ```
 
----
-
-## On Standby
+On Standby:
 
 ```sql
 SELECT * FROM test_rep;
 ```
 
-👉 You should see data ✅
+You should see data.
 
 ---
 
-### 🔥 Deep Understanding (Important)
+### 🔥 Key Understanding
 
-## What actually happens:
-
-1. Primary writes WAL
-2. WAL sender sends logs
-3. Standby WAL receiver gets logs
-4. Applies continuously
+* Primary generates WAL
+* WAL sender sends data
+* Standby receives WAL
+* Standby applies changes continuously
 
 ---
 
-### ⚠️ Common Errors (You WILL face)
+### ⚠️ Common Errors & Fixes
 
-### ❌ Connection refused
+Authentication failed:
 
-* Check network (`pg-net`)
-* Check container name
+* Fix password using ALTER ROLE
 
----
+pg_hba.conf error:
 
-### ❌ Authentication failed
+* Use: host replication replicator <subnet> md5
 
-* pg_hba.conf issue
-* Wrong password
+Directory not empty:
 
----
+* Run: rm -rf data/*
 
-### ❌ No replication
+Connection refused:
 
-* wal_level not set
-* restart missed
+* Check network and container name
 
 ---
 
-### ❌ Standby not starting
+### 🚀 Next Practice
 
-* Data directory not empty
-* base backup failed
-
----
-
-# 🚀 Next Level Practice (Do after this)
-
-Once this works, I recommend:
-
-👉 Add:
-
+* Manual failover (pg_ctl promote)
 * Replication slots
 * Synchronous replication
-* Failover (manual promotion)
 * 3-node setup
 
 ---
 
-If you want next:
-
-👉 I can give:
-
-* **Failover testing (promote standby)**
-* **Patroni cluster (production level 🔥)**
-* **Postgres tuning + monitoring (Grafana)**
-
+This version avoids PowerShell issues, fixes pg_hba mistakes, and handles real errors you faced.
