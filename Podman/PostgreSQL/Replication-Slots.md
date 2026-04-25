@@ -4,7 +4,7 @@
 
 ---
 
-## 🧠 What is Replication Slot (simple)
+### 🧠 What is Replication Slot (simple)
 
 A replication slot ensures WAL is **NOT deleted** until standby consumes it.
 
@@ -13,7 +13,7 @@ A replication slot ensures WAL is **NOT deleted** until standby consumes it.
 
 ---
 
-## 🔍 Check Replication Slots (PRIMARY)
+### 🔍 Check Replication Slots (PRIMARY)
 
 ```sql
 SELECT slot_name, active, restart_lsn FROM pg_replication_slots;
@@ -21,7 +21,7 @@ SELECT slot_name, active, restart_lsn FROM pg_replication_slots;
 
 ---
 
-# 🔥 Scenario 1: WAL Files Filling Disk (Standby Down)
+### Scenario 1: WAL Files Filling Disk (Standby Down)
 
 ### 💡 Problem
 
@@ -40,7 +40,7 @@ SELECT * FROM pg_create_physical_replication_slot('test_slot');
 Generate WAL:
 
 ```sql
-CREATE TABLE t1 AS SELECT generate_series(1,1000000);
+CREATE TABLE t2 AS SELECT generate_series(1,1000000);
 ```
 
 👉 **Run on HOST (stop standby)**
@@ -121,71 +121,7 @@ SELECT pg_drop_replication_slot('test_slot');
 
 ---
 
-# 🔥 Scenario 3: Slot Not Used by Standby
-
-### 💡 Problem
-
-Slot created but standby is NOT using it
-
----
-
-### ▶️ Create slot (PRIMARY)
-
-```sql
-SELECT pg_create_physical_replication_slot('test_slot');
-```
-
----
-
-### 🔍 Check standby (STANDBY)
-
-```bash
-cat /var/lib/postgresql/data/postgresql.auto.conf
-```
-
-👉 If you don’t see:
-
-```conf
-primary_slot_name = 'test_slot'
-```
-
-👉 Then slot is unused ❌
-
----
-
-### ✅ Fix (STANDBY)
-
-Edit:
-
-```bash
-nano /var/lib/postgresql/data/postgresql.auto.conf
-```
-
-Add:
-
-```conf
-primary_slot_name = 'test_slot'
-```
-
-Restart:
-
-```bash
-podman restart pg-standby
-```
-
----
-
-### 🔍 Verify (PRIMARY)
-
-```sql
-SELECT slot_name, active FROM pg_replication_slots;
-```
-
-👉 active = true ✅
-
----
-
-# 🔥 Scenario 4: Replication Lag + WAL Growth
+### Scenario 3: Replication Lag + WAL Growth
 
 ### 💡 Problem
 
