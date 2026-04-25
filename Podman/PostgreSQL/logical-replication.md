@@ -58,7 +58,7 @@ pg_ctl start -D /var/lib/postgresql/data
 
 ---
 
-## ✅ Verify (STANDBY)
+### ✅ Verify (STANDBY)
 
 ```sql
 SELECT pg_is_in_recovery();
@@ -74,7 +74,7 @@ false
 
 ---
 
-# 🔧 Step 1: Enable logical on PRIMARY
+### 🔧 Step 1: Enable logical on PRIMARY
 
 ```bash
 podman exec -it pg-primary bash
@@ -103,7 +103,7 @@ podman restart pg-primary
 
 ---
 
-# 🔧 Step 2: Allow connection
+### 🔧 Step 2: Allow connection
 
 Edit pg_hba.conf (PRIMARY):
 
@@ -115,7 +115,7 @@ Restart again.
 
 ---
 
-# 🧪 Step 3: Create table (PRIMARY)
+### 🧪 Step 3: Create table (PRIMARY)
 
 ```bash
 podman exec -it pg-primary psql -U postgres
@@ -123,12 +123,12 @@ podman exec -it pg-primary psql -U postgres
 
 ```sql
 CREATE TABLE emp(id INT, name TEXT);
-INSERT INTO emp VALUES (1,'ram'),(2,'raj');
+INSERT INTO emp VALUES (1,'monika'),(2,'jagan');
 ```
 
 ---
 
-# 🔗 Step 4: Create publication (PRIMARY)
+### 🔗 Step 4: Create publication (PRIMARY)
 
 ```sql
 CREATE PUBLICATION mypub FOR TABLE emp;
@@ -150,7 +150,7 @@ CREATE TABLE emp(id INT, name TEXT);
 
 ---
 
-# 🔗 Step 6: Create subscription (STANDBY)
+### 🔗 Step 6: Create subscription (STANDBY)
 
 ```sql
 CREATE SUBSCRIPTION mysub
@@ -160,7 +160,7 @@ PUBLICATION mypub;
 
 ---
 
-# ✅ Step 7: Verify
+### ✅ Step 7: Verify
 
 On standby:
 
@@ -171,13 +171,13 @@ SELECT * FROM emp;
 👉 You should see:
 
 ```text
-1 | ram
-2 | raj
+1 | monika
+2 | jaga
 ```
 
 ---
 
-# 🧪 Step 8: Test
+### 🧪 Step 8: Test
 
 On primary:
 
@@ -195,7 +195,7 @@ SELECT * FROM emp;
 
 ---
 
-# 🧠 Important clarity
+### 🧠 Important Note
 
 | Streaming Replication | Logical Replication     |
 | --------------------- | ----------------------- |
@@ -205,7 +205,7 @@ SELECT * FROM emp;
 
 ---
 
-# ⚠️ Biggest mistake people do
+### ⚠️ Biggest mistake people do
 
 👉 They try logical replication on **standby in recovery mode**
 
@@ -213,7 +213,7 @@ That will NEVER work ❌
 
 ---
 
-# 🎯 Final understanding
+### 🎯 Final understanding for your practise
 
 You are now using:
 
