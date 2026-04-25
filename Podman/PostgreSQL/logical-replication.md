@@ -4,6 +4,7 @@
 But here’s the important part:
 
 👉 **Logical replication is DIFFERENT from streaming replication**
+
 👉 So you must **treat both containers as independent databases**
 
 ---
