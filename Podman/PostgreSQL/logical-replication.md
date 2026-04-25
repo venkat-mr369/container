@@ -136,7 +136,7 @@ CREATE PUBLICATION mypub FOR TABLE emp;
 
 ---
 
-# 🧪 Step 5: Prepare subscriber (STANDBY)
+### 🧪 Step 5: Prepare subscriber (STANDBY)
 
 ```bash
 podman exec -it pg-standby psql -U postgres
