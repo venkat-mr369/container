@@ -24,7 +24,7 @@ podman network create pg-rep-net
 
 ---
 
-# 🔹 3. Create Volumes
+### 🔹 3. Create Volumes
 
 ```bash
 podman volume create rep-primary-data
@@ -34,7 +34,7 @@ podman volume create rep-standby2-data
 
 ---
 
-# 🔹 4. Start Primary Container
+### 🔹 4. Start Primary Container
 
 ```bash
 podman run -d --name rep-primary --network pg-rep-net -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -v rep-primary-data:/var/lib/postgresql/data docker.io/postgres:15
@@ -42,7 +42,7 @@ podman run -d --name rep-primary --network pg-rep-net -e POSTGRES_USER=postgres 
 
 ---
 
-# 🔹 5. Install repmgr inside Primary
+### 🔹 5. Install repmgr inside Primary
 
 ```bash
 podman exec -it rep-primary bash
@@ -57,12 +57,12 @@ apt install -y repmgr
 
 ---
 
-# 🔹 6. Configure Primary (repmgr)
+### 🔹 6. Configure Primary (repmgr)
 
 Edit:
 
 ```bash
-vi /etc/repmgr.conf
+nano /etc/repmgr.conf
 ```
 
 Add:
