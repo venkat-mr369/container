@@ -252,7 +252,7 @@ repmgr -h rep-primary -U repmgr -d repmgr -D /var/lib/postgresql/data standby cl
 
 ---
 
-## 🔹 21. Register
+### 🔹 21. Register
 
 ```bash
 repmgr standby register
@@ -278,15 +278,46 @@ postgres@b1ebe35834ac:~/data$ psql -U postgres -c "select client_addr, state fro
 ```
 ---
 
-# 🔁 Repeat for standby2
+### 🔁 Repeat for standby2
 
-Change only:
-
+```bash
+podman rm -f rep-standby2
+podman volume rm rep-standby2-data
+podman volume create rep-standby2-data
 ```
+```bash
+podman run -it --name rep-standby2 --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-standby2-data:/var/lib/postgresql/data --entrypoint bash docker.io/postgres:15
+```
+```
+apt update && apt install -y postgresql-15-repmgr && apt install -y nano
+```
+```bash
+rm -rf /var/lib/postgresql/data/*
+```
+Create config (as root)
+```bash
+vi /etc/repmgr.conf
+```
+Add:
+```bash
 node_id=3
 node_name=rep-standby2
+conninfo='host=rep-standby2 user=repmgr password=repmgr dbname=repmgr'
+data_directory='/var/lib/postgresql/data'
 ```
-
+Provide permissions:
+```bash
+chown postgres:postgres /etc/repmgr.conf
+chmod 600 /etc/repmgr.conf
+```
+```bash
+su - postgres
+export PGPASSWORD=repmgr
+repmgr -h rep-primary -U repmgr -d repmgr -D /var/lib/postgresql/data standby clone
+```
+Wait until:
+```
+standby clone successful
 ---
 
 # 🟡 WITNESS NODE SETUP
