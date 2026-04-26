@@ -154,4 +154,223 @@ Now real DBA work:
 👉 Convert old primary → standby again using **pg_rewind**
 
 ---
+Perfect — let’s do a **clean, end-to-end failover → pg_rewind → rejoin** flow. Follow it step by step and you’ll have a rock-solid understanding.
+
+---
+
+### 🐘 Scenario Setup
+
+```text
+pg-primary   → OLD PRIMARY
+pg-standby   → STANDBY
+```
+
+After failover:
+
+```text
+pg-standby   → NEW PRIMARY
+pg-primary   → OLD PRIMARY (needs rewind)
+```
+
+---
+
+# 🔥 Phase 1: Failover (Promote Standby)
+
+## ▶️ On pg-standby
+
+```bash
+podman exec -it pg-standby bash
+su - postgres
+/usr/lib/postgresql/16/bin/pg_ctl promote -D /var/lib/postgresql/data
+```
+
+---
+
+## ✅ Verify
+
+```sql
+SELECT pg_is_in_recovery();
+```
+
+👉 Output:
+
+```text
+false
+```
+
+✔️ pg-standby is now **NEW PRIMARY**
+
+---
+
+# 🔥 Phase 2: Old Primary is now broken
+
+👉 pg-primary still thinks it's primary
+👉 Timeline mismatch happens
+
+---
+
+## ❗ Stop old primary (VERY IMPORTANT)
+
+```bash
+podman exec -it pg-primary bash
+su - postgres
+/usr/lib/postgresql/16/bin/pg_ctl stop -D /var/lib/postgresql/data
+```
+
+---
+
+# 🔥 Phase 3: Run pg_rewind
+
+👉 Run this on **OLD PRIMARY (pg-primary)**
+
+```bash
+/usr/lib/postgresql/16/bin/pg_rewind \
+  --target-pgdata=/var/lib/postgresql/data \
+  --source-server="host=pg-standby user=replicator password=replica123 dbname=postgres"
+```
+
+---
+
+## 🧠 What happens here
+
+* Compares OLD PRIMARY vs NEW PRIMARY
+* Copies only changed blocks
+* Fixes timeline
+
+👉 Fast ⚡ (no full backup)
+
+---
+
+# 🔥 Phase 4: Convert old primary → standby
+
+## ▶️ On pg-primary
+
+### Create standby mode
+
+```bash
+touch /var/lib/postgresql/data/standby.signal
+```
+
+---
+
+### Add connection info
+
+```bash
+nano /var/lib/postgresql/data/postgresql.auto.conf
+```
+
+Add:
+
+```conf
+primary_conninfo = 'host=pg-standby user=replicator password=replica123'
+```
+
+---
+
+# 🔥 Phase 5: Start old primary
+
+```bash
+/usr/lib/postgresql/16/bin/pg_ctl start -D /var/lib/postgresql/data
+```
+
+---
+
+# 🔍 Phase 6: Final Verification
+
+## ▶️ On NEW PRIMARY (pg-standby)
+
+```sql
+SELECT client_addr, state FROM pg_stat_replication;
+```
+
+👉 Expected:
+
+```text
+pg-primary → streaming
+```
+
+---
+
+## ▶️ On OLD PRIMARY (now standby)
+
+```sql
+SELECT pg_is_in_recovery();
+```
+
+👉 Output:
+
+```text
+true
+```
+
+---
+
+## ▶️ Check WAL receiver
+
+```sql
+SELECT status FROM pg_stat_wal_receiver;
+```
+
+👉 Output:
+
+```text
+streaming
+```
+
+---
+
+# 🧪 Final Test
+
+## On NEW PRIMARY
+
+```sql
+INSERT INTO emp VALUES (999,'rewind_test');
+```
+
+---
+
+## On OLD PRIMARY (standby)
+
+```sql
+SELECT * FROM emp WHERE id=999;
+```
+
+👉 Row should appear ✅
+
+---
+
+# 🧠 Full Flow Summary
+
+```text
+1. Standby promoted → becomes primary
+2. Old primary stopped
+3. pg_rewind run on old primary
+4. Convert old primary to standby
+5. Start and rejoin replication
+```
+
+---
+
+# 🎯 Interview Answer (Perfect)
+
+👉 *“During failover, standby is promoted to primary. The old primary cannot rejoin due to timeline divergence, so we use pg_rewind to synchronize it quickly and reattach it as a standby.”*
+
+---
+
+# 🔥 Golden Rule
+
+```text
+Failover → Promote standby
+Rejoin old primary → pg_rewind
+```
+
+---
+
+If you want next level:
+
+👉 I can give:
+
+* split-brain scenario ⚠️
+* synchronous replication failover
+* Patroni automated failover 🔥
 
