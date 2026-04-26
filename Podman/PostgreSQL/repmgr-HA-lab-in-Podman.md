@@ -67,7 +67,7 @@ apt install -y postgresql-15-repmgr
 
 ---
 
-## 🔹 7. Switch to postgres user
+### 🔹 7. Switch to postgres user
 
 ```bash
 su - postgres
@@ -152,7 +152,7 @@ pg_ctl -D /var/lib/postgresql/data reload
 
 ---
 
-## 🔹 12. Create repmgr.conf
+### 🔹 12. Create repmgr.conf
 
 ```bash
 vi /etc/repmgr.conf
@@ -167,7 +167,7 @@ data_directory='/var/lib/postgresql/data'
 
 ---
 
-## 🔹 13. Register Primary
+### 🔹 13. Register Primary
 
 ```bash
 repmgr primary register
@@ -175,16 +175,12 @@ repmgr primary register
 
 ---
 
-# 🔵 STANDBY SETUP (rep-standby1)
+### STANDBY SETUP (rep-standby1)
 
-## 🔹 14. Start Container
+### 🔹 14. Start Container
 
 ```bash
-podman run -d --name rep-standby1 \
-  --network pg-rep-net \
-  -e POSTGRES_PASSWORD=postgres \
-  -v rep-standby1-data:/var/lib/postgresql/data \
-  docker.io/postgres:15
+podman run -d --name rep-standby1 --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-standby1- data:/var/lib/postgresql/data docker.io/postgres:15
 ```
 
 ---
