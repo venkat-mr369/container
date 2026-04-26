@@ -330,7 +330,7 @@ repmgr standby register
 ```bash
 repmgr cluster show
 ```
----Success out
+---Success output
 ```bash
 postgres@2846caa3bbcc:/$ repmgr cluster show
  ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
@@ -339,6 +339,17 @@ postgres@2846caa3bbcc:/$ repmgr cluster show
  2  | rep-standby1 | standby |   running | rep-primary | default  | 100      | 1        | host=rep-standby1 user=repmgr password=repmgr dbname=repmgr
  3  | rep-standby2 | standby |   running | rep-primary | default  | 100      | 1        | host=rep-standby2 user=repmgr password=repmgr dbname=repmgr
 postgres@2846caa3bbcc:/$
+```
+From Primary Node, verify this 
+```sql
+postgres@b1ebe35834ac:~/data$ hostname -a
+rep-primary
+postgres@b1ebe35834ac:~/data$ psql -U postgres -c "select client_addr, state from pg_stat_replication;"
+ client_addr |   state
+-------------+-----------
+ 10.89.1.15  | streaming
+ 10.89.1.16  | streaming
+(2 rows)
 ```
 
 ### 🟡 WITNESS NODE SETUP
