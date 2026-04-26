@@ -406,6 +406,10 @@ chmod 600 /etc/repmgr.conf
 
 ### 🔹 24. Register Witness
 
+---Switch to postgres
+```
+su - postgres
+```
 ```bash
 repmgr witness register -h rep-primary -U repmgr -d repmgr
 ```
