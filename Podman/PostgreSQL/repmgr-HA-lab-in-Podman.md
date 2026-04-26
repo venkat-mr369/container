@@ -212,9 +212,10 @@ pg_ctl -D /var/lib/postgresql/data stop
 
 ---
 
-## 🔹 18. Create repmgr.conf
+### 🔹 18. Create repmgr.conf (from root user)
 
 ```bash
+---Execute from root user
 vi /etc/repmgr.conf
 ```
 
@@ -223,14 +224,21 @@ node_id=2
 node_name=rep-standby1
 conninfo='host=rep-standby1 user=repmgr password=repmgr dbname=repmgr'
 data_directory='/var/lib/postgresql/data'
+----
+chown postgres:postgres /etc/repmgr.conf
+chmod 600 /etc/repmgr.conf
 ```
 
 ---
 
-## 🔹 19. Clone from Primary
+### 🔹 19. Clone from Primary
 
 ```bash
-repmgr -h rep-primary -U repmgr -d repmgr standby clone
+su - postgres
+rm -rf /var/lib/postgresql/data/*
+export PGPASSWORD=repmgr
+repmgr -h rep-primary -U repmgr -d repmgr -D /var/lib/postgresql/data standby clone
+
 ```
 
 ---
