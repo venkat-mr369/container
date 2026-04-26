@@ -185,7 +185,7 @@ podman run -d --name rep-standby1 --network pg-rep-net -e POSTGRES_PASSWORD=post
 
 ---
 
-## 🔹 15. Enter & Install
+### 🔹 15. Enter & Install
 
 ```bash
 podman exec -it rep-standby1 bash
@@ -195,7 +195,7 @@ apt install -y postgresql-15-repmgr
 
 ---
 
-## 🔹 16. Switch user
+### 🔹 16. Switch user
 
 ```bash
 su - postgres
@@ -203,10 +203,11 @@ su - postgres
 
 ---
 
-## 🔹 17. Stop PostgreSQL
+### 🔹 17. Stop PostgreSQL
 
 ```bash
-pg_ctlcluster 15 main stop
+/usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/data stop
+pg_ctl -D /var/lib/postgresql/data stop
 ```
 
 ---
