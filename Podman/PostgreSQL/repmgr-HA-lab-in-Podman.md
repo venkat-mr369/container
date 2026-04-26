@@ -380,6 +380,7 @@ apt update && apt install -y postgresql-15-repmgr && apt install -y nano
 ```bash
 su - postgres
 psql -U postgres
+CREATE USER repmgr WITH REPLICATION LOGIN PASSWORD 'repmgr';
 CREATE DATABASE repmgr OWNER repmgr;
 \c repmgr
 CREATE EXTENSION repmgr;
