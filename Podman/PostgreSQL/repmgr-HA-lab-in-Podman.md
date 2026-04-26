@@ -268,6 +268,14 @@ postgres=# select pg_is_in_recovery();
  t
 (1 row)
 ```
+```sql
+---verify from primary node 
+postgres@b1ebe35834ac:~/data$ psql -U postgres -c "select client_addr, state from pg_stat_replication;"
+ client_addr |   state
+-------------+-----------
+ 10.89.1.15  | streaming
+(1 row)
+```
 ---
 
 # 🔁 Repeat for standby2
