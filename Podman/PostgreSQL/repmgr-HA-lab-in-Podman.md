@@ -2,7 +2,7 @@
 
 ---
 
-# 🔹 1. Container Naming (Follow this exactly)
+### 🔹 1. Container Naming 
 
 Use these names:
 
@@ -16,7 +16,7 @@ pgpool        (later step)
 
 ---
 
-# 🔹 2. Create Network
+### 🔹 2. Create Network
 
 ```bash
 podman network create pg-rep-net
@@ -37,12 +37,7 @@ podman volume create rep-standby2-data
 # 🔹 4. Start Primary Container
 
 ```bash
-podman run -d --name rep-primary \
-  --network pg-rep-net \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -v rep-primary-data:/var/lib/postgresql/data \
-  docker.io/postgres:15
+podman run -d --name rep-primary --network pg-rep-net -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -v rep-primary-data:/var/lib/postgresql/data docker.io/postgres:15
 ```
 
 ---
