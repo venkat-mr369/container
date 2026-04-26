@@ -247,7 +247,7 @@ repmgr -h rep-primary -U repmgr -d repmgr -D /var/lib/postgresql/data standby cl
 ## 🔹 20. Start DB
 
 ```bash
-pg_ctlcluster 15 main start
+/usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/data start
 ```
 
 ---
@@ -257,7 +257,17 @@ pg_ctlcluster 15 main start
 ```bash
 repmgr standby register
 ```
-
+```bash
+repmgr cluster show
+```
+--- to verify
+```sql
+postgres=# select pg_is_in_recovery();
+ pg_is_in_recovery
+-------------------
+ t
+(1 row)
+```
 ---
 
 # 🔁 Repeat for standby2
