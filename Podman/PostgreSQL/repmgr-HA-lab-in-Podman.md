@@ -382,6 +382,9 @@ su - postgres
 psql -U postgres
 CREATE USER repmgr WITH REPLICATION LOGIN PASSWORD 'repmgr';
 CREATE DATABASE repmgr OWNER repmgr;
+GRANT ALL ON SCHEMA repmgr TO repmgr;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA repmgr TO repmgr;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA repmgr TO repmgr;
 \c repmgr
 CREATE EXTENSION repmgr;
 \q
@@ -411,6 +414,7 @@ chmod 600 /etc/repmgr.conf
 su - postgres
 ```
 ```bash
+export PGPASSWORD=repmgr
 repmgr witness register -h rep-primary -U repmgr -d repmgr
 ```
 
@@ -423,7 +427,16 @@ From primary:
 ```bash
 repmgr cluster show
 ```
-
+---Output
+```shell
+postgres@34066662c1a0:~$ repmgr cluster show
+ ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
+----+--------------+---------+-----------+-------------+----------+----------+----------+-------------------------------------------------------------
+ 1  | rep-primary  | primary | * running |             | default  | 100      | 1        | host=rep-primary user=repmgr dbname=repmgr password=repmgr
+ 2  | rep-standby1 | standby |   running | rep-primary | default  | 100      | 1        | host=rep-standby1 user=repmgr password=repmgr dbname=repmgr
+ 3  | rep-standby2 | standby |   running | rep-primary | default  | 100      | 1        | host=rep-standby2 user=repmgr password=repmgr dbname=repmgr
+ 4  | rep-witness  | witness | * running | rep-primary | default  | 0        | n/a      | host=rep-witness user=repmgr password=repmgr dbname=repmgr
+```
 ---
 
 ### What is Witness? (IMPORTANT)
@@ -457,7 +470,7 @@ rep-standby1   rep-standby2
 
 ---
 
-# 🚀 Next Steps
+### 🚀 Next Steps
 
 Once this is done:
 
