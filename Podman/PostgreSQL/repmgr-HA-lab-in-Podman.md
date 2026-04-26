@@ -354,23 +354,36 @@ postgres@b1ebe35834ac:~/data$ psql -U postgres -c "select client_addr, state fro
 
 ### 🟡 WITNESS NODE SETUP
 
-## 🔹 22. Start Witness
+### 🔹 22. Start Witness
 
+---suppose if you face issues, clean it & recreate
 ```bash
-podman run -d --name rep-witness \
-  --network pg-rep-net \
-  -e POSTGRES_PASSWORD=postgres \
-  -v rep-witness-data:/var/lib/postgresql/data \
-  docker.io/postgres:15
+podman rm -f rep-witness
+podman volume rm rep-witness-data
+podman volume create rep-witness-data
+```
+```bash
+podman run -d --name rep-witness --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-witness-data:/var/lib/postgresql/data docker.io/postgres:15
 ```
 
 ---
 
-## 🔹 23. Install & Configure
+### 🔹 23. Install & Configure
 
 Same steps as standby but:
 
 ```
+podman exec -it rep-witness bash
+apt update && apt install -y postgresql-15-repmgr && apt install -y nano
+```
+---Switch to postgres user
+```
+su - postgres
+psql -U postgres
+CREATE DATABASE repmgr OWNER repmgr;
+\c repmgr
+CREATE EXTENSION repmgr;
+\q
 node_id=4
 node_name=rep-witness
 ```
