@@ -377,20 +377,33 @@ podman exec -it rep-witness bash
 apt update && apt install -y postgresql-15-repmgr && apt install -y nano
 ```
 ---Switch to postgres user
-```
+```bash
 su - postgres
 psql -U postgres
 CREATE DATABASE repmgr OWNER repmgr;
 \c repmgr
 CREATE EXTENSION repmgr;
 \q
+```
+--From root user 
+```bash
+vi /etc/repmgr.conf
+```
+Add:-
+```bash
 node_id=4
 node_name=rep-witness
+conninfo='host=rep-witness user=repmgr password=repmgr dbname=repmgr'
+data_directory='/var/lib/postgresql/data'
 ```
-
+---Permissions
+```
+chown postgres:postgres /etc/repmgr.conf
+chmod 600 /etc/repmgr.conf
+```
 ---
 
-## 🔹 24. Register Witness
+### 🔹 24. Register Witness
 
 ```bash
 repmgr witness register -h rep-primary -U repmgr -d repmgr
@@ -398,7 +411,7 @@ repmgr witness register -h rep-primary -U repmgr -d repmgr
 
 ---
 
-# 🔹 25. Verify Cluster
+### 🔹 25. Verify Cluster
 
 From primary:
 
@@ -408,7 +421,7 @@ repmgr cluster show
 
 ---
 
-# 🧠 What is Witness? (IMPORTANT)
+### What is Witness? (IMPORTANT)
 
 Without witness:
 
@@ -427,7 +440,7 @@ With witness:
 
 ---
 
-# 🔥 Final Architecture
+### 🔥 Final Architecture
 
 ```
         rep-primary
