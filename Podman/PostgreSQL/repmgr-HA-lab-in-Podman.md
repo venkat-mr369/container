@@ -95,6 +95,7 @@ CREATE EXTENSION repmgr;
 
 ```bash
 psql -d repmgr
+
 ```
 
 ```sql
@@ -142,7 +143,11 @@ host repmgr repmgr 0.0.0.0/0 md5
 Reload:
 
 ```bash
+--try any method 
 pg_ctl reload
+psql -U postgres -c "SELECT pg_reload_conf();"
+pg_ctl -D /var/lib/postgresql/data reload
+
 ```
 
 ---
