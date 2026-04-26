@@ -180,7 +180,7 @@ repmgr primary register
 ### 🔹 14. Start Container
 
 ```bash
-podman run -d --name rep-standby1 --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-standby1-data:/var/lib/postgresql/data docker.io/postgres:15
+podman run -it --name rep-standby1 --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-standby1-data:/var/lib/postgresql/data --entrypoint bash docker.io/postgres:15
 ```
 
 ---
@@ -191,6 +191,7 @@ podman run -d --name rep-standby1 --network pg-rep-net -e POSTGRES_PASSWORD=post
 podman exec -it rep-standby1 bash
 apt update
 apt install -y postgresql-15-repmgr
+apt install nano -y
 ```
 
 ---
