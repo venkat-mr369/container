@@ -1,4 +1,4 @@
-### 🚀 repmgr-based PostgreSQL HA Lab (Podman)
+### repmgr-based PostgreSQL HA Lab (Podman)
 
 ---
 
@@ -14,7 +14,7 @@ pgpool (later)
 
 ---
 
-## 🔹 2. Network
+### 🔹 2. Network
 
 ```bash
 podman network create pg-rep-net
@@ -22,7 +22,7 @@ podman network create pg-rep-net
 
 ---
 
-## 🔹 3. Volumes
+### 🔹 3. Volumes
 
 ```bash
 podman volume create rep-primary-data
@@ -33,7 +33,7 @@ podman volume create rep-witness-data
 
 ---
 
-## 🔹 4. Start Primary
+### 🔹 4. Start Primary
 
 ```bash
 podman run -d --name rep-primary \
@@ -46,9 +46,9 @@ podman run -d --name rep-primary \
 
 ---
 
-# 🔴 PRIMARY CONFIGURATION
+### PRIMARY CONFIGURATION
 
-## 🔹 5. Enter Container
+### 🔹 5. Enter Container
 
 ```bash
 podman exec -it rep-primary bash
@@ -56,7 +56,7 @@ podman exec -it rep-primary bash
 
 ---
 
-## 🔹 6. Install repmgr (IMPORTANT FIX)
+### 🔹 6. Install repmgr (IMPORTANT FIX)
 
 👉 run as **root**
 
@@ -75,7 +75,7 @@ su - postgres
 
 ---
 
-## 🔹 8. Create User & DB
+### 🔹 8. Create User & DB
 
 ```bash
 psql
@@ -91,7 +91,7 @@ CREATE EXTENSION repmgr;
 
 ---
 
-## 🔹 9. Fix Permissions (VERY IMPORTANT)
+### 🔹 9. Fix Permissions (VERY IMPORTANT)
 
 ```bash
 psql -d repmgr
@@ -106,7 +106,7 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA repmgr TO repmgr;
 
 ---
 
-## 🔹 10. Configure PostgreSQL
+### 🔹 10. Configure PostgreSQL
 
 Edit:
 
@@ -126,7 +126,7 @@ listen_addresses='*'
 
 ---
 
-## 🔹 11. Configure pg_hba.conf
+### 🔹 11. Configure pg_hba.conf
 
 ```bash
 vi /var/lib/postgresql/data/pg_hba.conf
