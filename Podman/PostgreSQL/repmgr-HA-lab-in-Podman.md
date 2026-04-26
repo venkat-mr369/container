@@ -1,22 +1,20 @@
-**repmgr-based PostgreSQL HA lab in Podman**  👍
+### 🚀 repmgr-based PostgreSQL HA Lab (Podman)
 
 ---
 
-### 🔹 1. Container Naming 
-
-Use these names:
+### 🔹 1. Container Naming
 
 ```
 rep-primary
 rep-standby1
 rep-standby2
-rep-witness   (optional but recommended)
-pgpool        (later step)
+rep-witness
+pgpool (later)
 ```
 
 ---
 
-### 🔹 2. Create Network
+## 🔹 2. Network
 
 ```bash
 podman network create pg-rep-net
@@ -24,76 +22,147 @@ podman network create pg-rep-net
 
 ---
 
-### 🔹 3. Create Volumes
+## 🔹 3. Volumes
 
 ```bash
 podman volume create rep-primary-data
 podman volume create rep-standby1-data
 podman volume create rep-standby2-data
+podman volume create rep-witness-data
 ```
 
 ---
 
-### 🔹 4. Start Primary Container
+## 🔹 4. Start Primary
 
 ```bash
-podman run -d --name rep-primary --network pg-rep-net -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -v rep-primary-data:/var/lib/postgresql/data docker.io/postgres:15
+podman run -d --name rep-primary \
+  --network pg-rep-net \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -v rep-primary-data:/var/lib/postgresql/data \
+  docker.io/postgres:15
 ```
 
 ---
 
-### 🔹 5. Install repmgr inside Primary
+# 🔴 PRIMARY CONFIGURATION
+
+## 🔹 5. Enter Container
 
 ```bash
 podman exec -it rep-primary bash
 ```
 
-Inside container:
+---
+
+## 🔹 6. Install repmgr (IMPORTANT FIX)
+
+👉 run as **root**
 
 ```bash
 apt update
-apt install -y repmgr
+apt install -y postgresql-15-repmgr
 ```
 
 ---
 
-### 🔹 6. Configure Primary (repmgr)
+## 🔹 7. Switch to postgres user
+
+```bash
+su - postgres
+```
+
+---
+
+## 🔹 8. Create User & DB
+
+```bash
+psql
+```
+
+```sql
+CREATE USER repmgr WITH REPLICATION LOGIN PASSWORD 'repmgr';
+CREATE DATABASE repmgr OWNER repmgr;
+\c repmgr
+CREATE EXTENSION repmgr;
+\q
+```
+
+---
+
+## 🔹 9. Fix Permissions (VERY IMPORTANT)
+
+```bash
+psql -d repmgr
+```
+
+```sql
+GRANT ALL ON SCHEMA repmgr TO repmgr;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA repmgr TO repmgr;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA repmgr TO repmgr;
+\q
+```
+
+---
+
+## 🔹 10. Configure PostgreSQL
 
 Edit:
 
 ```bash
-nano /etc/repmgr.conf
+vi /var/lib/postgresql/data/postgresql.conf
+```
+
+Add/Uncomment:
+
+```
+wal_level = replica
+max_wal_senders = 10
+max_replication_slots = 10
+hot_standby = on
+listen_addresses='*'
+```
+
+---
+
+## 🔹 11. Configure pg_hba.conf
+
+```bash
+vi /var/lib/postgresql/data/pg_hba.conf
 ```
 
 Add:
 
 ```
+host replication repmgr 0.0.0.0/0 md5
+host repmgr repmgr 0.0.0.0/0 md5
+```
+
+Reload:
+
+```bash
+pg_ctl reload
+```
+
+---
+
+## 🔹 12. Create repmgr.conf
+
+```bash
+vi /etc/repmgr.conf
+```
+
+```
 node_id=1
 node_name=rep-primary
-conninfo='host=rep-primary user=repmgr dbname=repmgr password=repmgr'
+conninfo='host=rep-primary user=repmgr password=repmgr dbname=repmgr'
 data_directory='/var/lib/postgresql/data'
 ```
 
 ---
 
-# 🔹 7. Create repmgr User & DB
-
-Login to postgres:
-
-```bash
-psql -U postgres
-```
-
-Run:
-
-```sql
-CREATE USER repmgr WITH REPLICATION PASSWORD 'repmgr';
-CREATE DATABASE repmgr OWNER repmgr;
-```
-
----
-
-# 🔹 8. Register Primary
+## 🔹 13. Register Primary
 
 ```bash
 repmgr primary register
@@ -101,9 +170,9 @@ repmgr primary register
 
 ---
 
-# 🔹 9. Create Standby Containers
+# 🔵 STANDBY SETUP (rep-standby1)
 
-### Standby 1
+## 🔹 14. Start Container
 
 ```bash
 podman run -d --name rep-standby1 \
@@ -113,96 +182,169 @@ podman run -d --name rep-standby1 \
   docker.io/postgres:15
 ```
 
-### Standby 2
+---
+
+## 🔹 15. Enter & Install
 
 ```bash
-podman run -d --name rep-standby2 \
-  --network pg-rep-net \
-  -e POSTGRES_PASSWORD=postgres \
-  -v rep-standby2-data:/var/lib/postgresql/data \
-  docker.io/postgres:15
+podman exec -it rep-standby1 bash
+apt update
+apt install -y postgresql-15-repmgr
 ```
 
 ---
 
-# 🔹 10. Clone Standby (Important Step)
-
-Enter standby:
+## 🔹 16. Switch user
 
 ```bash
-podman exec -it rep-standby1 bash
+su - postgres
 ```
 
-Install repmgr:
+---
 
-```bash
-apt update && apt install -y repmgr
-```
-
-Stop postgres:
+## 🔹 17. Stop PostgreSQL
 
 ```bash
 pg_ctlcluster 15 main stop
 ```
 
-Clone:
+---
+
+## 🔹 18. Create repmgr.conf
+
+```bash
+vi /etc/repmgr.conf
+```
+
+```
+node_id=2
+node_name=rep-standby1
+conninfo='host=rep-standby1 user=repmgr password=repmgr dbname=repmgr'
+data_directory='/var/lib/postgresql/data'
+```
+
+---
+
+## 🔹 19. Clone from Primary
 
 ```bash
 repmgr -h rep-primary -U repmgr -d repmgr standby clone
 ```
 
-Start:
+---
+
+## 🔹 20. Start DB
 
 ```bash
 pg_ctlcluster 15 main start
 ```
 
-Register:
+---
+
+## 🔹 21. Register
 
 ```bash
 repmgr standby register
 ```
 
-👉 Repeat same for **rep-standby2**
+---
+
+# 🔁 Repeat for standby2
+
+Change only:
+
+```
+node_id=3
+node_name=rep-standby2
+```
 
 ---
 
-# 🔹 11. Verify Cluster
+# 🟡 WITNESS NODE SETUP
 
-On primary:
+## 🔹 22. Start Witness
+
+```bash
+podman run -d --name rep-witness \
+  --network pg-rep-net \
+  -e POSTGRES_PASSWORD=postgres \
+  -v rep-witness-data:/var/lib/postgresql/data \
+  docker.io/postgres:15
+```
+
+---
+
+## 🔹 23. Install & Configure
+
+Same steps as standby but:
+
+```
+node_id=4
+node_name=rep-witness
+```
+
+---
+
+## 🔹 24. Register Witness
+
+```bash
+repmgr witness register -h rep-primary -U repmgr -d repmgr
+```
+
+---
+
+# 🔹 25. Verify Cluster
+
+From primary:
 
 ```bash
 repmgr cluster show
 ```
 
-You should see:
+---
+
+# 🧠 What is Witness? (IMPORTANT)
+
+Without witness:
+
+👉 Network split ayite:
+
+* standby thinks primary is dead
+* becomes new primary ❌
+* **split-brain problem**
+
+With witness:
+
+👉 witness acts like **tie-breaker**
+
+* decides who is real primary
+* avoids dual primary
+
+---
+
+# 🔥 Final Architecture
 
 ```
-rep-primary    primary
-rep-standby1   standby
-rep-standby2   standby
+        rep-primary
+        /        \
+rep-standby1   rep-standby2
+        \
+        rep-witness
 ```
 
 ---
 
-# 🔹 12. (Optional but Recommended) Witness Node
+# 🚀 Next Steps
 
-Name:
+Once this is done:
 
-```
-rep-witness
-```
-
-Used to avoid split-brain.
+👉 setup `repmgrd` (auto failover)
+👉 simulate failover (kill primary 🔥)
+👉 add Pgpool-II
+👉 add Grafana
 
 ---
 
-# 🔥 Next Step (Tell me)
+If you want next, I’ll give you:
 
-Once this is done, I’ll help you with:
-
-👉 automatic failover (`repmgrd`)
-👉 Pgpool-II setup
-👉 Grafana monitoring
-
-We can make this **production-level lab** step by step.
+👉 **auto failover full setup + interview explanation (very important)**
