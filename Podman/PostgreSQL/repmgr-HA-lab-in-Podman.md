@@ -244,7 +244,7 @@ repmgr -h rep-primary -U repmgr -d repmgr -D /var/lib/postgresql/data standby cl
 
 ---
 
-## 🔹 20. Start DB
+### 🔹 20. Start DB
 
 ```bash
 /usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/data start
@@ -319,8 +319,29 @@ Wait until:
 ```
 standby clone successful
 ---
+```bash
+/usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/data start
+```
+Register
+```bash
+repmgr standby register
+```
+#### ✅ Final Verification
+```bash
+repmgr cluster show
+```
+---Success out
+```bash
+postgres@2846caa3bbcc:/$ repmgr cluster show
+ ID | Name         | Role    | Status    | Upstream    | Location | Priority | Timeline | Connection string
+----+--------------+---------+-----------+-------------+----------+----------+----------+-------------------------------------------------------------
+ 1  | rep-primary  | primary | * running |             | default  | 100      | 1        | host=rep-primary user=repmgr dbname=repmgr password=repmgr
+ 2  | rep-standby1 | standby |   running | rep-primary | default  | 100      | 1        | host=rep-standby1 user=repmgr password=repmgr dbname=repmgr
+ 3  | rep-standby2 | standby |   running | rep-primary | default  | 100      | 1        | host=rep-standby2 user=repmgr password=repmgr dbname=repmgr
+postgres@2846caa3bbcc:/$
+```
 
-# 🟡 WITNESS NODE SETUP
+### 🟡 WITNESS NODE SETUP
 
 ## 🔹 22. Start Witness
 
