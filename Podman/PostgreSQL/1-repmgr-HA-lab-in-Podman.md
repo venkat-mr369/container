@@ -43,12 +43,7 @@ For demo / production:
 ### 🔹 4. Start Primary
 
 ```bash
-podman run -d --name rep-primary \
-  --network pg-rep-net \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -v rep-primary-data:/var/lib/postgresql/data \
-  docker.io/postgres:15
+podman run -it --name rep-primary --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-primary-data:/var/lib/postgresql/data --entrypoint bash docker.io/postgres:15
 ```
 
 ---
