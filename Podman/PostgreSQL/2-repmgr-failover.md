@@ -52,9 +52,10 @@ repmgrd -f /etc/repmgr.conf -d
 ```
 👉 `-d` = run as daemon
 
---some times, issue delete & restart repmgrd -f /etc/repmgr.conf -d
+--some times, issue delete & restart 
 ```
 rm -f /tmp/repmgrd.pid
+repmgrd -f /etc/repmgr.conf -d
 ```
 ---
 
