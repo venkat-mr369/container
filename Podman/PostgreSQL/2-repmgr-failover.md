@@ -29,6 +29,7 @@ promote_command='repmgr standby promote -f /etc/repmgr.conf'
 follow_command='repmgr standby follow -f /etc/repmgr.conf'
 log_level=INFO
 monitoring_history=yes
+pg_bindir='/usr/lib/postgresql/15/bin'
 ```
 --verify permissions
 ```bash
