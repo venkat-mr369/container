@@ -32,10 +32,7 @@ podman volume create rep-witness-data
 ```
 
 ---
----Note
-👍 Suggestion
-
-#####For your labs:
+##### Note:- For your labs:
 
 ❌ Avoid --restart=always
 ✅ Use manual control
