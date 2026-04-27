@@ -115,7 +115,7 @@ repmgr cluster show
 
 ---
 
-# ✅ Expected Result
+#### ✅ Expected Result
 
 ```text id="p6w9rs"
 rep-standby1   primary   🔥 (promoted)
@@ -126,7 +126,7 @@ rep-primary    failed
 
 ---
 
-# 🧠 What happened internally
+### 🧠 What happened internally
 
 1. Primary stopped
 2. Standby detected failure
@@ -138,11 +138,11 @@ rep-primary    failed
 
 ---
 
-# 🔁 3. Bring Old Primary Back (Important)
+### 🔁 3. Bring Old Primary Back (Important)
 
 After failover:
 
-```bash id="x7m4nv"
+```bash
 podman start rep-primary
 ```
 
@@ -156,20 +156,18 @@ repmgr node rejoin -f /etc/repmgr.conf --force-rewind
 
 ---
 
-# 🔥 You achieved (very important)
+### 🔥 You achieved (very important)
 
 ✔ Multi-node replication
 ✔ Witness-based quorum
 ✔ Automatic failover
 ✔ Self-healing cluster
 
-👉 This is **real production-level DBA skill**
-
 ---
 
-# 🚀 Next (if you want)
+# 🚀 Next 
 
-We can go deeper:
+Learn below deeper:
 
 👉 Pgpool-II (load balancing + routing)
 👉 Grafana monitoring
@@ -177,4 +175,3 @@ We can go deeper:
 
 ---
 
-Run failover once and tell me what happened — I’ll help you analyze it like an interviewer would 👍
