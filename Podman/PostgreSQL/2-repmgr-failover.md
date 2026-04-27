@@ -51,8 +51,9 @@ Run on **each node (primary + both standby's)**:
 repmgrd -f /etc/repmgr.conf -d
 ```
 👉 `-d` = run as daemon
-```
+
 --some times, issue delete & restart repmgrd -f /etc/repmgr.conf -d
+```
 rm -f /tmp/repmgrd.pid
 ```
 ---
