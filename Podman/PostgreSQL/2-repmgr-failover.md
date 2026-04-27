@@ -63,13 +63,13 @@ ps -ef | grep repmgrd
 
 ---
 
-# 🔥 2. LIVE FAILOVER TEST (Important)
+### 🔥 2. LIVE FAILOVER TEST (Important)
 
 Now the real test 💥
 
 ---
 
-## 🔴 Step 1: Stop PRIMARY (simulate crash)
+### 🔴 Step 1: Stop PRIMARY (simulate crash)
 
 From host:
 
