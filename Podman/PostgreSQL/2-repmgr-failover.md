@@ -50,9 +50,11 @@ Run on **each node (primary + both standby's)**:
 ```bash
 repmgrd -f /etc/repmgr.conf -d
 ```
-
 👉 `-d` = run as daemon
-
+```
+--some times, issue delete & restart repmgrd -f /etc/repmgr.conf -d
+rm -f /tmp/repmgrd.pid
+```
 ---
 
 ### 🔹 Step 3: Verify daemon running
