@@ -1,4 +1,4 @@
-**automatic failover using `repmgrd`** and then test it live 🔥
+**Automatic failover using `repmgrd`** and then test it live 🔥
 
 ---
 
