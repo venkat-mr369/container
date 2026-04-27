@@ -32,6 +32,16 @@ podman volume create rep-witness-data
 ```
 
 ---
+---Note
+👍 Suggestion
+
+#####For your labs:
+
+❌ Avoid --restart=always
+✅ Use manual control
+
+For demo / production:
+✅ Use --restart=always
 
 ### 🔹 4. Start Primary
 
