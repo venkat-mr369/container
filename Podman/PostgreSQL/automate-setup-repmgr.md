@@ -59,13 +59,11 @@ CMD ["/usr/local/bin/start.sh"]
 ```bash
 #!/bin/bash
 
-# Start PostgreSQL using official entrypoint
 docker-entrypoint.sh postgres &
 
-sleep 10
+sleep 15
 
-# Start repmgrd
-repmgrd -f /etc/repmgr.conf
+repmgrd -f /etc/repmgr.conf -d
 
 wait
 ```
