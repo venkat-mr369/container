@@ -178,6 +178,22 @@ pg_bindir='/usr/lib/postgresql/15/bin'
 
 priority=90
 ```
+#### 3. witness.conf
+```bash
+node_id=4
+node_name='rep-witness'
+conninfo='host=rep-witness user=repmgr password=repmgr dbname=repmgr'
+data_directory='/var/lib/postgresql/data'
+
+failover=automatic
+
+log_file='/var/log/repmgr/repmgr.log'
+log_level=INFO
+
+pg_bindir='/usr/lib/postgresql/15/bin'
+
+priority=0
+```
 ---
 
 ### 🔥 7. Build image
@@ -192,7 +208,7 @@ PS C:\Users\venkat> cd E:\with-podman-practice\postgres-repmgr
 PS E:\with-podman-practice\postgres-repmgr>
 ```
 
-```bash id="y8qq6j"
+```bash
 podman build -t postgres-repmgr .
 ```
 ```ps
@@ -206,7 +222,7 @@ docker.io/library/postgres  16          188ac51266eb  6 days ago      458 MB
 
 ### 🔥 8. Verfiy the Network, and Create 
 
-```bash id="6bwwyx"
+```bash 
 podman network create pg-rep-net
 ```
 
@@ -275,7 +291,7 @@ postgres-repmgr
 | user creation     | ✅ auto |
 | DB creation       | ✅ auto |
 | extension         | ✅ auto |
-| repmgrd start     | ✅ auto |#
+| repmgrd start     | ✅ auto |
 
 ---
 
@@ -283,7 +299,7 @@ postgres-repmgr
 
 👉 Register cluster:
 
-```bash id="hkt2qd"
+```bash
 repmgr primary register
 repmgr standby clone
 repmgr standby register
