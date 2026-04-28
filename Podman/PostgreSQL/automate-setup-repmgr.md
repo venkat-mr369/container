@@ -233,9 +233,8 @@ You now have:
 * Failover ready ✅
 
 ---
+#### Next level (optional)
 
-### 👍 Next level (optional)
-
-If you want:
 👉 I’ll remove even last manual step → **FULL AUTO CLUSTER (no commands at all)**
+
 👉 Or convert this into **Kubernetes Operator style**
