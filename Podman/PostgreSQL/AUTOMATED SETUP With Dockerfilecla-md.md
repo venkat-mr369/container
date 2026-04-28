@@ -245,51 +245,87 @@ podman build -t postgres-repmgr .
 ---
 
 ### 🔥 12. Run ALL nodes
-
-#### Primary
-```powershell
+# 1. Create network first (if not exists)
+podman network create pg-rep-net
+```bash
+# 2. Start PRIMARY first — others depend on it
 podman run -d --name rep-primary `
---network pg-rep-net `
--e POSTGRES_PASSWORD=postgres `
--e NODE_ROLE=primary `
--v rep-primary-data:/var/lib/postgresql/data `
--v ${PWD}/primary.conf:/etc/repmgr.conf `
-postgres-repmgr
-```
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=primary `
+  -v rep-primary-data:/var/lib/postgresql/data `
+  -v ${PWD}/primary.conf:/etc/repmgr.conf `
+  postgres-repmgr
 
-#### Standby1
-```powershell
+# 3. Wait ~10 seconds for primary to be ready
+Start-Sleep -Seconds 10
+
+# 4. Start standbys
 podman run -d --name rep-standby1 `
---network pg-rep-net `
--e POSTGRES_PASSWORD=postgres `
--e NODE_ROLE=standby `
--v rep-standby1-data:/var/lib/postgresql/data `
--v ${PWD}/standby1.conf:/etc/repmgr.conf `
-postgres-repmgr
-```
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=standby `
+  -v rep-standby1-data:/var/lib/postgresql/data `
+  -v ${PWD}/standby1.conf:/etc/repmgr.conf `
+  postgres-repmgr
 
-#### Standby2
-```powershell
 podman run -d --name rep-standby2 `
---network pg-rep-net `
--e POSTGRES_PASSWORD=postgres `
--e NODE_ROLE=standby `
--v rep-standby2-data:/var/lib/postgresql/data `
--v ${PWD}/standby2.conf:/etc/repmgr.conf `
-postgres-repmgr
-```
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=standby `
+  -v rep-standby2-data:/var/lib/postgresql/data `
+  -v ${PWD}/standby2.conf:/etc/repmgr.conf `
+  postgres-repmgr
 
-#### Witness
-```powershell
+# 5. Start witness last
 podman run -d --name rep-witness `
---network pg-rep-net `
--e POSTGRES_PASSWORD=postgres `
--e NODE_ROLE=standby `
--v rep-witness-data:/var/lib/postgresql/data `
--v ${PWD}/witness.conf:/etc/repmgr.conf `
-postgres-repmgr
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=witness `
+  -v rep-witness-data:/var/lib/postgresql/data `
+  -v ${PWD}/witness.conf:/etc/repmgr.conf `
+  postgres-repmgr
 ```
+# 1. Create network first (if not exists)
+podman network create pg-rep-net
 
+# 2. Start PRIMARY first — others depend on it
+podman run -d --name rep-primary `
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=primary `
+  -v rep-primary-data:/var/lib/postgresql/data `
+  -v ${PWD}/primary.conf:/etc/repmgr.conf `
+  postgres-repmgr
+
+# 3. Wait ~10 seconds for primary to be ready
+Start-Sleep -Seconds 10
+
+# 4. Start standbys
+podman run -d --name rep-standby1 `
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=standby `
+  -v rep-standby1-data:/var/lib/postgresql/data `
+  -v ${PWD}/standby1.conf:/etc/repmgr.conf `
+  postgres-repmgr
+
+podman run -d --name rep-standby2 `
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=standby `
+  -v rep-standby2-data:/var/lib/postgresql/data `
+  -v ${PWD}/standby2.conf:/etc/repmgr.conf `
+  postgres-repmgr
+
+# 5. Start witness last
+podman run -d --name rep-witness `
+  --network pg-rep-net `
+  -e POSTGRES_PASSWORD=postgres `
+  -e NODE_ROLE=witness `
+  -v rep-witness-data:/var/lib/postgresql/data `
+  -v ${PWD}/witness.conf:/etc/repmgr.conf `
+  postgres-repmgr
 ---
 
 ```bash
