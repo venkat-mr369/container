@@ -1,6 +1,6 @@
 ---
 
-### 🔥 🧱 FINAL AUTOMATED SETUP
+### 🧱 AUTOMATED SETUP With Dockerfile
 
 ---
 
@@ -56,19 +56,18 @@ CMD ["/usr/local/bin/start.sh"]
 
 ### 🔥 3. start.sh (AUTO START + REPMGR)
 
-```bash id="ys4g9t"
+```bash
 #!/bin/bash
 
-# Start PostgreSQL
-pg_ctl -D $PGDATA -o "-c config_file=/etc/postgresql/postgresql.conf" start
+# Start PostgreSQL using official entrypoint
+docker-entrypoint.sh postgres &
 
-sleep 5
+sleep 10
 
 # Start repmgrd
 repmgrd -f /etc/repmgr.conf
 
-# Keep container alive
-tail -f /dev/null
+wait
 ```
 
 ---
@@ -82,6 +81,18 @@ max_wal_senders=10
 max_replication_slots=10
 hot_standby=on
 wal_log_hints=on
+
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d.log'
+
+log_line_prefix = '%m [%p] %u@%d'
+log_connections = on
+log_disconnections = on
+
+log_statement = 'none'
+log_min_duration_statement = 500   # better visibility
+
 ```
 
 ---
@@ -206,7 +217,12 @@ podman network create pg-rep-net
 ### Primary
 
 ```bash 
-podman run -d --name rep-primary --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-primary-data:/var/lib/postgresql/data -v $(pwd)/primary.conf:/etc/repmgr.conf postgres-repmgr
+podman run -d --name rep-primary `
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-v rep-primary-data:/var/lib/postgresql/data `
+-v E:/with-podman-practice/postgres-repmgr/primary.conf:/etc/repmgr.conf `
+postgres-repmgr
 ```
 
 ---
@@ -214,19 +230,24 @@ podman run -d --name rep-primary --network pg-rep-net -e POSTGRES_PASSWORD=postg
 ### Standby1
 
 ```bash
-podman run -d --name rep-standby1 --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-standby1-data:/var/lib/postgresql/data -v $(pwd)/standby1.conf:/etc/repmgr.conf postgres-repmgr
+podman run -d --name rep-standby1 `
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-v rep-standby1-data:/var/lib/postgresql/data `
+-v ${PWD}/standby1.conf:/etc/repmgr.conf `
+postgres-repmgr
 ```
 
 ---
 
 ### Standby2
 
-```bash id="2k51b0"
-podman run -d --name rep-standby2 \
---network pg-rep-net \
--e POSTGRES_PASSWORD=postgres \
--v rep-standby2-data:/var/lib/postgresql/data \
--v $(pwd)/standby2.conf:/etc/repmgr.conf \
+```bash
+podman run -d --name rep-standby2 `
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-v rep-standby2-data:/var/lib/postgresql/data `
+-v ${PWD}/standby2.conf:/etc/repmgr.conf `
 postgres-repmgr
 ```
 
@@ -234,12 +255,12 @@ postgres-repmgr
 
 ### Witness
 
-```bash id="t8q9fs"
-podman run -d --name rep-witness \
---network pg-rep-net \
--e POSTGRES_PASSWORD=postgres \
--v rep-witness-data:/var/lib/postgresql/data \
--v $(pwd)/witness.conf:/etc/repmgr.conf \
+```bash
+podman run -d --name rep-witness `
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-v rep-witness-data:/var/lib/postgresql/data `
+-v ${PWD}/witness.conf:/etc/repmgr.conf `
 postgres-repmgr
 ```
 
