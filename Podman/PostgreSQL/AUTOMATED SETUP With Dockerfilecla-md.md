@@ -249,41 +249,45 @@ podman build -t postgres-repmgr .
 #### Primary
 ```powershell
 podman run -d --name rep-primary `
-  --network pg-rep-net `
-  -e POSTGRES_PASSWORD=postgres `
-  -v rep-primary-data:/var/lib/postgresql/data `
-  -v ${PWD}/primary.conf:/etc/repmgr.conf `
-  postgres-repmgr
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-e NODE_ROLE=primary `
+-v rep-primary-data:/var/lib/postgresql/data `
+-v ${PWD}/primary.conf:/etc/repmgr.conf `
+postgres-repmgr
 ```
 
 #### Standby1
 ```powershell
 podman run -d --name rep-standby1 `
-  --network pg-rep-net `
-  -e POSTGRES_PASSWORD=postgres `
-  -v rep-standby1-data:/var/lib/postgresql/data `
-  -v ${PWD}/standby1.conf:/etc/repmgr.conf `
-  postgres-repmgr
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-e NODE_ROLE=standby `
+-v rep-standby1-data:/var/lib/postgresql/data `
+-v ${PWD}/standby1.conf:/etc/repmgr.conf `
+postgres-repmgr
 ```
 
 #### Standby2
 ```powershell
 podman run -d --name rep-standby2 `
-  --network pg-rep-net `
-  -e POSTGRES_PASSWORD=postgres `
-  -v rep-standby2-data:/var/lib/postgresql/data `
-  -v ${PWD}/standby2.conf:/etc/repmgr.conf `
-  postgres-repmgr
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-e NODE_ROLE=standby `
+-v rep-standby2-data:/var/lib/postgresql/data `
+-v ${PWD}/standby2.conf:/etc/repmgr.conf `
+postgres-repmgr
 ```
 
 #### Witness
 ```powershell
 podman run -d --name rep-witness `
-  --network pg-rep-net `
-  -e POSTGRES_PASSWORD=postgres `
-  -v rep-witness-data:/var/lib/postgresql/data `
-  -v ${PWD}/witness.conf:/etc/repmgr.conf `
-  postgres-repmgr
+--network pg-rep-net `
+-e POSTGRES_PASSWORD=postgres `
+-e NODE_ROLE=standby `
+-v rep-witness-data:/var/lib/postgresql/data `
+-v ${PWD}/witness.conf:/etc/repmgr.conf `
+postgres-repmgr
 ```
 
 ---
