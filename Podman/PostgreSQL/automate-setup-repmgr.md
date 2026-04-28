@@ -110,7 +110,63 @@ GRANT ALL ON SCHEMA repmgr TO repmgr;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA repmgr TO repmgr;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA repmgr TO repmgr;
 ```
+#### 1. primary.conf
+```bash
+node_id=1
+node_name='rep-primary'
+conninfo='host=rep-primary user=repmgr password=repmgr dbname=repmgr'
+data_directory='/var/lib/postgresql/data'
 
+failover=automatic
+
+promote_command='repmgr standby promote -f /etc/repmgr.conf'
+follow_command='repmgr standby follow -f /etc/repmgr.conf'
+
+log_file='/var/log/repmgr/repmgr.log'
+log_level=INFO
+
+pg_bindir='/usr/lib/postgresql/15/bin'
+
+priority=100
+```
+#### 2. standby1.conf
+```bash
+node_id=2
+node_name='rep-standby1'
+conninfo='host=rep-standby1 user=repmgr password=repmgr dbname=repmgr'
+data_directory='/var/lib/postgresql/data'
+
+failover=automatic
+
+promote_command='repmgr standby promote -f /etc/repmgr.conf'
+follow_command='repmgr standby follow -f /etc/repmgr.conf'
+
+log_file='/var/log/repmgr/repmgr.log'
+log_level=INFO
+
+pg_bindir='/usr/lib/postgresql/15/bin'
+
+priority=100
+```
+#### 3. standby2.conf
+```bash
+node_id=3
+node_name='rep-standby2'
+conninfo='host=rep-standby2 user=repmgr password=repmgr dbname=repmgr'
+data_directory='/var/lib/postgresql/data'
+
+failover=automatic
+
+promote_command='repmgr standby promote -f /etc/repmgr.conf'
+follow_command='repmgr standby follow -f /etc/repmgr.conf'
+
+log_file='/var/log/repmgr/repmgr.log'
+log_level=INFO
+
+pg_bindir='/usr/lib/postgresql/15/bin'
+
+priority=90
+```
 ---
 
 ### 🔥 7. Build image
@@ -149,26 +205,16 @@ podman network create pg-rep-net
 
 ### Primary
 
-```bash id="q9lzz8"
-podman run -d --name rep-primary \
---network pg-rep-net \
--e POSTGRES_PASSWORD=postgres \
--v rep-primary-data:/var/lib/postgresql/data \
--v $(pwd)/primary.conf:/etc/repmgr.conf \
-postgres-repmgr
+```bash 
+podman run -d --name rep-primary --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-primary-data:/var/lib/postgresql/data -v $(pwd)/primary.conf:/etc/repmgr.conf postgres-repmgr
 ```
 
 ---
 
 ### Standby1
 
-```bash id="1k93lg"
-podman run -d --name rep-standby1 \
---network pg-rep-net \
--e POSTGRES_PASSWORD=postgres \
--v rep-standby1-data:/var/lib/postgresql/data \
--v $(pwd)/standby1.conf:/etc/repmgr.conf \
-postgres-repmgr
+```bash
+podman run -d --name rep-standby1 --network pg-rep-net -e POSTGRES_PASSWORD=postgres -v rep-standby1-data:/var/lib/postgresql/data -v $(pwd)/standby1.conf:/etc/repmgr.conf postgres-repmgr
 ```
 
 ---
