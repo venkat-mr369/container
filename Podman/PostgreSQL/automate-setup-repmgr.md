@@ -115,13 +115,23 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA repmgr TO repmgr;
 
 ### 🔥 7. Build image
 
+```ps
+PS C:\Users\venkat> podman network ls
+NETWORK ID    NAME        DRIVER
+fa978e593de5  pg-net      bridge
+0f6f5d4df551  pg-rep-net  bridge
+2f259bab93aa  podman      bridge
+PS C:\Users\venkat> cd E:\with-podman-practice\postgres-repmgr
+PS E:\with-podman-practice\postgres-repmgr>
+```
+
 ```bash id="y8qq6j"
 podman build -t postgres-repmgr .
 ```
 
 ---
 
-### 🔥 8. Network
+### 🔥 8. Verfiy the Network, and Create 
 
 ```bash id="6bwwyx"
 podman network create pg-rep-net
