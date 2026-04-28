@@ -128,7 +128,13 @@ PS E:\with-podman-practice\postgres-repmgr>
 ```bash id="y8qq6j"
 podman build -t postgres-repmgr .
 ```
-
+```ps
+PS E:\with-podman-practice\postgres-repmgr> podman images
+REPOSITORY                  TAG         IMAGE ID      CREATED         SIZE
+localhost/postgres-repmgr   latest      bca5d09575ea  30 seconds ago  482 MB
+docker.io/library/postgres  15          a116b2156a68  6 days ago      452 MB
+docker.io/library/postgres  16          188ac51266eb  6 days ago      458 MB
+```
 ---
 
 ### 🔥 8. Verfiy the Network, and Create 
