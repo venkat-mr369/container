@@ -3,7 +3,7 @@
 
 ---
 
-### 🟢 1. Folder structure
+### 1. Folder structure
 
 ```
 postgres-repmgr/
@@ -20,11 +20,9 @@ postgres-repmgr/
 
 ---
 
-### 🔥 2. Dockerfile
+### 2. Dockerfile
 
-**Bugs fixed: #1** — `postgresql.conf` must land in a temp path (`/tmp/`), then `start.sh` copies it into `$PGDATA` after initialization. Copying directly to `/etc/postgresql/` is never read by PostgreSQL.
-
-```dockerfile
+```bash
 FROM postgres:15
 
 USER root
@@ -53,13 +51,7 @@ CMD ["/usr/local/bin/start.sh"]
 
 ---
 
-### 🔥 3. start.sh
-
-**Bugs fixed: #3, #4, #5**
-
-- `sleep 15` replaced with a `pg_isready` loop — no more race conditions
-- `repmgrd -d` removed; runs in background with `&` so `wait` correctly holds the container alive
-- Standbys now detect an uninitialized `$PGDATA` and skip `docker-entrypoint.sh` (they get data via `repmgr standby clone` in the manual step). Primary initializes normally.
+### 3. start.sh
 
 ```bash
 #!/bin/bash
@@ -109,9 +101,7 @@ wait $PGPID
 
 ### 🔥 4. postgresql.conf
 
-**Bug fixed: #2** — Added `shared_preload_libraries = 'repmgr'`. Without this, repmgrd's background worker does not load and automatic failover is unreliable.
-
-```ini
+```sql
 listen_addresses = '*'
 wal_level = replica
 max_wal_senders = 10
@@ -138,17 +128,16 @@ log_min_duration_statement = 500
 
 No changes needed — this was correct.
 
-```ini
+```sh
 local   all         all                   trust
 host    all         all   0.0.0.0/0       md5
-host    replication repmgr 0.0.0.0/0     md5
+host    replication repmgr 0.0.0.0/0      md5
 ```
 
 ---
 
-### 🔥 6. init.sql
+### 6. init.sql
 
-**Bug fixed: #11** — Added `ALTER DEFAULT PRIVILEGES` so repmgr gets access to tables created *after* init (e.g., when repmgr registers nodes and writes its own schema tables).
 
 ```sql
 CREATE USER repmgr WITH REPLICATION LOGIN PASSWORD 'repmgr';
@@ -171,9 +160,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA repmgr GRANT ALL ON SEQUENCES TO repmgr;
 
 ### 🔥 7. primary.conf
 
-No changes.
-
-```ini
+```sh
 node_id=1
 node_name='rep-primary'
 conninfo='host=rep-primary user=repmgr password=repmgr dbname=repmgr'
@@ -193,9 +180,7 @@ priority=100
 
 ### 🔥 8. standby1.conf
 
-**Bug fixed: #10** — `priority` changed from `100` to `90`. Having standby1 equal to the primary creates an ambiguous promotion order. Primary=100 → Standby1=90 → Standby2=80 gives a clear hierarchy.
-
-```ini
+```sh
 node_id=2
 node_name='rep-standby1'
 conninfo='host=rep-standby1 user=repmgr password=repmgr dbname=repmgr'
@@ -213,11 +198,9 @@ priority=90   # was 100 — changed to establish clear promotion order
 
 ---
 
-### 🔥 9. standby2.conf
+### standby2.conf
 
-No changes.
-
-```ini
+```sh
 node_id=3
 node_name='rep-standby2'
 conninfo='host=rep-standby2 user=repmgr password=repmgr dbname=repmgr'
@@ -237,8 +220,6 @@ priority=80
 
 ### 🔥 10. witness.conf
 
-**Bug fixed: #8** — Label corrected from `#### 3.` to `#### 4.`
-
 ```ini
 node_id=4
 node_name='rep-witness'
@@ -255,7 +236,7 @@ priority=0
 
 ---
 
-### 🔥 11. Build image
+### 11. Build image
 
 ```bash
 podman build -t postgres-repmgr .
@@ -264,8 +245,6 @@ podman build -t postgres-repmgr .
 ---
 
 ### 🔥 12. Run ALL nodes
-
-**Bug fixed: #9** — All volume mounts now use `${PWD}` consistently. No more mixed absolute + relative paths.
 
 #### Primary
 ```powershell
@@ -309,10 +288,6 @@ podman run -d --name rep-witness `
 
 ---
 
-### 🟡 One-time manual cluster registration
-
-**Bugs fixed: #6, #7** — `standby clone` now has all required flags. Commands are organized by which container you `exec` into.
-
 ```bash
 # Step 1 — on rep-primary
 podman exec -it rep-primary \
@@ -346,12 +321,12 @@ podman exec -it rep-primary \
 ### 🔥 What is automated vs manual
 
 | Task | Status |
-|---|---|
-| PostgreSQL config | ✅ auto |
-| pg_hba setup | ✅ auto |
+|------|--------|
+| PostgreSQL config  | ✅ auto |
+| pg_hba setup       | ✅ auto |
 | User + DB creation | ✅ auto |
 | Extension + grants | ✅ auto |
-| repmgrd start | ✅ auto |
+| repmgrd start      | ✅ auto |
 | Cluster registration | ⚠️ one-time manual |
 
 After `podman stop / start` → cluster auto-recovers, no reconfiguration needed.
