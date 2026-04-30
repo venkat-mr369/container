@@ -35,7 +35,7 @@ podman run --rm hello-world
 ## Step 2 — Pull the CockroachDB image
 
 ```bash
-podman pull cockroachdb/cockroach:latest
+podman pull cockroachdb/cockroach:v25.4.2
 ```
 Verify the pull:
 
