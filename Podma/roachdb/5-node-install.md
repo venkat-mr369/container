@@ -1,5 +1,3 @@
-Great learning project. CockroachDB on Podman is an excellent way to understand distributed databases, Raft consensus, and replication. I'll walk you through every step with explanations of *why* each piece matters, not just the commands. We'll build a 5-node **insecure** cluster (insecure = no TLS certs, simpler for learning; never use this in production).
-
 ---
 
 ## Concepts you should understand first
@@ -23,7 +21,8 @@ podman --version
 podman info
 ```
 
-You should see Podman 5.x. The `podman info` output shows the storage driver, network backend (should be `netavark` on Podman 4+/5+), and rootless status. If this fails, install Podman first via your distro's package manager.
+You should see Podman 5.x. The `podman info` output shows the storage driver, network backend (should be `netavark` on Podman 4+/5+), and rootless status.
+If this fails, install Podman first via your distro's package manager.
 
 A quick sanity check that containers can run:
 
@@ -38,9 +37,6 @@ podman run --rm hello-world
 ```bash
 podman pull cockroachdb/cockroach:latest
 ```
-
-You can pin to a specific version like `cockroachdb/cockroach:v25.4.2` for reproducibility — pinning is good practice because `latest` will change under you. Check the [official tags page](https://hub.docker.com/r/cockroachdb/cockroach/tags) for the current stable version.
-
 Verify the pull:
 
 ```bash
@@ -51,7 +47,8 @@ podman images | grep cockroach
 
 ## Step 3 — Create a dedicated Podman network
 
-Why: each container gets its own IP on this network, and they can resolve each other by container name (DNS). Without this, nodes would have to use IPs that change.
+Why: each container gets its own IP on this network, and they can resolve each other by container name (DNS). 
+Without this, nodes would have to use IPs that change.
 
 ```bash
 podman network create roachnet
@@ -70,7 +67,8 @@ Look at the `subnet` field — that's the IP range your containers will get. Typ
 
 ## Step 4 — Create persistent volumes (one per node)
 
-Why: container filesystems are ephemeral. The CockroachDB data files (`/cockroach/cockroach-data` inside the container) must live on a volume so node restarts don't lose data.
+Why: container filesystems are ephemeral. The CockroachDB data files (`/cockroach/cockroach-data` inside the container) 
+must live on a volume so node restarts don't lose data.
 
 ```bash
 podman volume create roach1-data
@@ -90,7 +88,7 @@ podman volume ls
 
 ## Step 5 — Start the 5 nodes
 
-We start each node as a detached container. Important flags broken down:
+We start each node as a detached container. Important flags mentioned below :
 
 - `--name roach1` → container name (also DNS hostname on `roachnet`).
 - `--hostname roach1` → hostname inside the container.
@@ -106,77 +104,31 @@ We start each node as a detached container. Important flags broken down:
 **Start node 1 (this one publishes ports to your host):**
 
 ```bash
-podman run -d \
-  --name=roach1 \
-  --hostname=roach1 \
-  --net=roachnet \
-  -p 26257:26257 -p 8080:8080 \
-  -v roach1-data:/cockroach/cockroach-data \
-  cockroachdb/cockroach:latest start \
-    --insecure \
-    --listen-addr=roach1:26257 \
-    --http-addr=roach1:8080 \
-    --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach1 --hostname=roach1 --net=roachnet -p 26257:26257 -p 8080:8080 -v roach1-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach1:26257 --http-addr=roach1:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 2:**
 
 ```bash
-podman run -d \
-  --name=roach2 \
-  --hostname=roach2 \
-  --net=roachnet \
-  -v roach2-data:/cockroach/cockroach-data \
-  cockroachdb/cockroach:latest start \
-    --insecure \
-    --listen-addr=roach2:26257 \
-    --http-addr=roach2:8080 \
-    --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach2 --hostname=roach2 --net=roachnet -v roach2-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach2:26257 --http-addr=roach2:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 3:**
 
 ```bash
-podman run -d \
-  --name=roach3 \
-  --hostname=roach3 \
-  --net=roachnet \
-  -v roach3-data:/cockroach/cockroach-data \
-  cockroachdb/cockroach:latest start \
-    --insecure \
-    --listen-addr=roach3:26257 \
-    --http-addr=roach3:8080 \
-    --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach3 --hostname=roach3 --net=roachnet -v roach3-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach3:26257 --http-addr=roach3:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 4:**
 
 ```bash
-podman run -d \
-  --name=roach4 \
-  --hostname=roach4 \
-  --net=roachnet \
-  -v roach4-data:/cockroach/cockroach-data \
-  cockroachdb/cockroach:latest start \
-    --insecure \
-    --listen-addr=roach4:26257 \
-    --http-addr=roach4:8080 \
-    --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach4 --hostname=roach4 --net=roachnet -v roach4-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach4:26257 --http-addr=roach4:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 5:**
 
 ```bash
-podman run -d \
-  --name=roach5 \
-  --hostname=roach5 \
-  --net=roachnet \
-  -v roach5-data:/cockroach/cockroach-data \
-  cockroachdb/cockroach:latest start \
-    --insecure \
-    --listen-addr=roach5:26257 \
-    --http-addr=roach5:8080 \
-    --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach5 --hostname=roach5 --net=roachnet -v roach5-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach5:26257 --http-addr=roach5:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 Confirm all 5 are running:
@@ -185,7 +137,7 @@ Confirm all 5 are running:
 podman ps
 ```
 
-At this point the nodes are running but the cluster is **not yet initialized**. If you check logs you'll see lines like *"node waiting for cluster initialization"* — that's expected.
+nodes are running but the cluster is **not yet initialized**. check logs you'll see lines like *"node waiting for cluster initialization"* — that's expected.
 
 ```bash
 podman logs roach1 | tail -20
@@ -219,7 +171,8 @@ Open your browser to:
 http://localhost:8080
 ```
 
-Because we published roach1's `8080` to your host's `8080`, you reach the cluster through node 1. The UI works identically regardless of which node you connect to. You should see:
+Because we published roach1's `8080` to your host's `8080`, you reach the cluster through node 1. 
+The UI works identically regardless of which node you connect to. You should see:
 
 - **Cluster Overview** → 5 live nodes
 - **Node List** → roach1 through roach5, all healthy
@@ -249,14 +202,20 @@ SELECT * FROM accounts;
 Now connect through a *different* node and verify the data is there (proving replication works):
 
 ```bash
-podman exec -it roach3 ./cockroach sql --insecure --host=roach3:26257 \
-  -e "SELECT * FROM bank.accounts;"
+podman exec -it roach3 ./cockroach sql --insecure --host=roach3:26257 -e "SELECT * FROM bank.accounts;"
 ```
 
 Same data, different node. That's the distributed SQL working.
 
-Exit the SQL shell with `\q`.
+Exit the SQL shell with `\q`. One more method to Connect
 
+```bash
+podman exec -it roach1 /bin/bash
+
+ls /cockroach
+./cockroach sql --insecure --host=roach1:26257 -e "SELECT * FROM bank.accounts;"
+exit
+```
 ---
 
 ## Step 9 — Raise the replication factor to 5
@@ -264,7 +223,7 @@ Exit the SQL shell with `\q`.
 By default, CockroachDB replicates each range 3 times. With 5 nodes you can replicate 5 times so the cluster survives **2 simultaneous node failures** instead of just 1.
 
 ```bash
-podman exec -it roach1 ./cockroach sql --insecure --host=roach1:26257
+podman exec -it roach4 ./cockroach sql --insecure --host=roach4:26257
 ```
 
 Then in the SQL shell:
