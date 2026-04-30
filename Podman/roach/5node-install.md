@@ -1,6 +1,6 @@
 
 
-## Concepts you should understand first
+### CockroachDB Explanation
 
 Before commands, here's what we're actually building:
 
