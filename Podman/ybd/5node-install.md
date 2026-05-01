@@ -1,7 +1,3 @@
-Excellent — building the same 5-node cluster on YugabyteDB will teach you a lot by direct comparison. The architectural differences will become very concrete as you go through the steps.
-
-Let me search for the latest official guidance to make sure we use current commands.Excellent — building YugabyteDB will sharpen your understanding because while the *concepts* are identical to CockroachDB (Raft, distributed SQL, no primary), the *architecture* is meaningfully different. Let me walk you through it the same way, with comparisons to what you just built.
-
 ---
 
 ## The big architectural difference to internalize first
@@ -62,7 +58,8 @@ podman images | findstr yugabyte
 ## Step 2 — Create a Podman network
 
 ```powershell
-podman network create ybnet
+podman network ls
+podman network inspect venkat-net
 ```
 
 Verify:
@@ -90,7 +87,7 @@ This first node is special — it doesn't `--join` anything because it *is* the 
 **One-line PowerShell command:**
 
 ```powershell
-podman run -d --name=yb1 --hostname=yb1 --net=ybnet -p 5433:5433 -p 7000:7000 -p 9000:9000 -p 15433:15433 -p 9042:9042 -v yb1-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb1 --hostname=yb1 --net=venkat-net -p 5433:5433 -p 7000:7000 -p 9000:9000 -p 15433:15433 -p 9042:9042 -v yb1-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb1 --fault_tolerance=none --background=false
 ```
 
 What each new flag means:
@@ -116,7 +113,7 @@ Each of these uses `--join=yb1` to point at the seed. They don't publish ports t
 **Node 2:**
 
 ```powershell
-podman run -d --name=yb2 --hostname=yb2 --net=ybnet -v yb2-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb2 --join=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb2 --hostname=yb2 --net=venkat-net -v yb2-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb2 --join=yb1 --fault_tolerance=none --background=false
 ```
 
 **Node 3:**
@@ -128,13 +125,13 @@ podman run -d --name=yb3 --hostname=yb3 --net=ybnet -v yb3-data:/home/yugabyte/y
 **Node 4:**
 
 ```powershell
-podman run -d --name=yb4 --hostname=yb4 --net=ybnet -v yb4-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb4 --join=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb3 --hostname=yb3 --net=venkat-net -v yb3-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb3 --join=yb1 --fault_tolerance=none --background=false
 ```
 
 **Node 5:**
 
 ```powershell
-podman run -d --name=yb5 --hostname=yb5 --net=ybnet -v yb5-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb5 --join=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb5 --hostname=yb5 --net=venkat-net -v yb5-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb5 --join=yb1 --fault_tolerance=none --background=false
 ```
 
 Wait about 30 seconds for everything to converge, then verify:
@@ -279,7 +276,7 @@ podman exec -it yb1 bash
 podman stop yb1 yb2 yb3 yb4 yb5
 podman rm yb1 yb2 yb3 yb4 yb5
 podman volume rm yb1-data yb2-data yb3-data yb4-data yb5-data
-podman network rm ybnet
+podman network rm venkat-net
 ```
 
 ---
