@@ -104,31 +104,31 @@ We start each node as a detached container. Important flags mentioned below :
 **Start node 1 (this one publishes ports to your host):**
 
 ```bash
-podman run -d --name=roach1 --hostname=roach1 --net=roachnet -p 26257:26257 -p 8080:8080 -v roach1-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach1:26257 --http-addr=roach1:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach1 --hostname=roach1 --net=venkat-net -p 26257:26257 -p 8080:8080 -v roach1-data:/cockroach/cockroach-data cockroachdb/cockroach:v25.4.2 start --insecure --listen-addr=roach1:26257 --http-addr=roach1:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 2:**
 
 ```bash
-podman run -d --name=roach2 --hostname=roach2 --net=venkat-net -v roach2-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach2:26257 --http-addr=roach2:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach2 --hostname=roach2 --net=venkat-net -v roach2-data:/cockroach/cockroach-data cockroachdb/cockroach:v25.4.2 start --insecure --listen-addr=roach2:26257 --http-addr=roach2:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 3:**
 
 ```bash
-podman run -d --name=roach3 --hostname=roach3 --net=venkat-net -v roach3-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach3:26257 --http-addr=roach3:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach3 --hostname=roach3 --net=venkat-net -v roach3-data:/cockroach/cockroach-data cockroachdb/cockroach:v25.4.2 start --insecure --listen-addr=roach3:26257 --http-addr=roach3:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 4:**
 
 ```bash
-podman run -d --name=roach4 --hostname=roach4 --net=venkat-net -v roach4-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach4:26257 --http-addr=roach4:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach4 --hostname=roach4 --net=venkat-net -v roach4-data:/cockroach/cockroach-data cockroachdb/cockroach:v25.4.2 start --insecure --listen-addr=roach4:26257 --http-addr=roach4:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 5:**
 
 ```bash
-podman run -d --name=roach5 --hostname=roach5 --net=venkat-net -v roach5-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach5:26257 --http-addr=roach5:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach5 --hostname=roach5 --net=venkat-net -v roach5-data:/cockroach/cockroach-data cockroachdb/cockroach:v25.4.2 start --insecure --listen-addr=roach5:26257 --http-addr=roach5:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 Confirm all 5 are running:
@@ -192,7 +192,7 @@ podman exec -it roach1 ./cockroach sql --insecure --host=roach1:26257
 You're now in the CockroachDB SQL shell. Try:
 
 ```sql
-CREATE DATABASE bank;
+CREATE DATABASE yes;
 USE bank;
 CREATE TABLE accounts (id INT PRIMARY KEY, balance DECIMAL);
 INSERT INTO accounts VALUES (1, 1000.50), (2, 250.00);
@@ -213,7 +213,7 @@ Exit the SQL shell with `\q`. One more method to Connect
 podman exec -it roach1 /bin/bash
 
 ls /cockroach
-./cockroach sql --insecure --host=roach1:26257 -e "SELECT * FROM bank.accounts;"
+./cockroach sql --insecure --host=roach1:26257 -e "SELECT * FROM yes.accounts;"
 exit
 ```
 ---
