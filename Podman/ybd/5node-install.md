@@ -1,5 +1,3 @@
----
-
 ## The big architectural difference to internalize first
 
 CockroachDB ran **one process per node** (the `cockroach` binary).
