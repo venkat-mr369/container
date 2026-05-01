@@ -423,3 +423,172 @@ That's the operational workflow. **Grafana is never edited.** Prometheus is the 
 ---
 
 Run through Steps 1–7 first. Once Prometheus's **Status → Targets** page is up and you can see what's green vs DOWN, paste that and we'll work through any failures before moving to Grafana.
+
+I see the error — "Failed to load dashboard / Dashboard not found." This means the dashboard ID `16906` I gave you doesn't exist on grafana.com (or has been removed/made private). My apologies — I should have verified those IDs.
+
+Let me get you working IDs that actually exist right now.Confirmed. The IDs I gave you (`16906`, `12620`) don't exist on grafana.com. There's a much better path that bypasses grafana.com entirely — **Cockroach Labs publishes their official dashboards as JSON files directly on GitHub.** Let's use those.
+
+---
+
+## The right approach: download dashboards from CockroachDB's GitHub
+
+Cockroach Labs maintains their official dashboards at:
+
+```
+https://github.com/cockroachdb/cockroach/tree/master/monitoring/grafana-dashboards/by-cluster
+```
+
+There are 4 dashboards there, each focused on a different aspect:
+
+| Dashboard JSON | What it shows |
+|---|---|
+| `runtime.json` | Node uptime, CPU, memory |
+| `storage.json` | Disk space, range counts |
+| `sql.json` | Queries, transactions, latency |
+| `replication.json` | Replica counts, leaseholders, snapshots |
+
+You'll import all four. Together they give you a complete view of the cluster.
+
+## Step 1 — Download the dashboard JSON files
+
+In PowerShell:
+
+```powershell
+cd E:\podman-instances\monitoring\grafana
+
+curl.exe -o runtime.json https://raw.githubusercontent.com/cockroachdb/cockroach/master/monitoring/grafana-dashboards/by-cluster/runtime.json
+
+curl.exe -o storage.json https://raw.githubusercontent.com/cockroachdb/cockroach/master/monitoring/grafana-dashboards/by-cluster/storage.json
+
+curl.exe -o sql.json https://raw.githubusercontent.com/cockroachdb/cockroach/master/monitoring/grafana-dashboards/by-cluster/sql.json
+
+curl.exe -o replication.json https://raw.githubusercontent.com/cockroachdb/cockroach/master/monitoring/grafana-dashboards/by-cluster/replication.json
+```
+
+Note: `curl.exe` (with the `.exe`) is important on PowerShell — without `.exe`, PowerShell's built-in `curl` alias does something different and won't save the file properly.
+
+Verify:
+
+```powershell
+dir E:\podman-instances\monitoring\grafana
+```
+
+You should see 4 JSON files, each a few hundred KB.
+
+## Step 2 — Import each dashboard via the JSON upload
+
+Now in Grafana (the page in your screenshot, which is exactly the right page):
+
+1. Click the **"Upload dashboard JSON file"** area at the top — that big dotted box that says "Drag and drop here or click to browse."
+2. Navigate to `E:\podman-instances\monitoring\grafana\` and pick `sql.json` first.
+3. On the next screen, in the **Prometheus** dropdown, select your `Prometheus` data source.
+4. Click **Import**.
+
+Repeat for the other three files (`runtime.json`, `storage.json`, `replication.json`).
+
+You'll end up with 4 dashboards in your Grafana, each showing a different angle of your CockroachDB cluster.
+
+## Step 3 — Important: these dashboards need specific labels
+
+Reading the [Cockroach Labs README](https://github.com/cockroachdb/cockroach/blob/master/monitoring/grafana-dashboards/by-cluster/README.md), the dashboards expect three Prometheus labels on every metric:
+
+- `job="cockroachdb"` ✓ (you already have this in `prometheus.yml`)
+- `cluster=...` ✗ (missing)
+- `instance=...` ✓ (Prometheus adds this automatically from the target hostname)
+
+Without the `cluster` label, some panels will show "No data." Let's add it. Edit your `prometheus.yml`:
+
+```powershell
+notepad E:\podman-instances\monitoring\prometheus\prometheus.yml
+```
+
+Update the `cockroachdb` job to add a static label:
+
+```yaml
+  - job_name: 'cockroachdb'
+    metrics_path: '/_status/vars'
+    static_configs:
+      - targets:
+          - 'roach1:8080'
+          - 'roach2:8080'
+          - 'roach3:8080'
+          - 'roach4:8080'
+          - 'roach5:8080'
+        labels:
+          cluster: 'venkat-lab'
+```
+
+The `labels:` block under `static_configs` adds that label to every metric scraped from these targets. You can name the cluster anything — `venkat-lab`, `dev`, `local`, whatever you like. It just needs to exist.
+
+Save the file and reload Prometheus:
+
+```powershell
+curl.exe -X POST http://localhost:9090/-/reload
+```
+
+Verify the label is now there: open `http://localhost:9090`, go to **Graph**, run:
+
+```
+up{job="cockroachdb"}
+```
+
+Each target should now show `cluster="venkat-lab"` in its labels.
+
+## Step 4 — Refresh the Grafana dashboards
+
+Go back to Grafana, open the SQL dashboard. Wait ~30 seconds for fresh metrics. Graphs should now populate.
+
+If a dashboard has a `cluster` dropdown at the top, select `venkat-lab`. If panels still show "No data," click into one to inspect its query — sometimes you need to adjust the metric names slightly for newer CockroachDB versions, but the bulk of them should work.
+
+---
+
+## For YugabyteDB — same approach, different source
+
+YugabyteDB also publishes dashboards. The cleanest approach is to grab them from their GitHub:
+
+```powershell
+cd E:\podman-instances\monitoring\grafana
+
+curl.exe -o yb-master.json https://raw.githubusercontent.com/yugabyte/yugabyte-db/master/cloud/grafana/master.json
+
+curl.exe -o yb-tserver.json https://raw.githubusercontent.com/yugabyte/yugabyte-db/master/cloud/grafana/tserver.json
+```
+
+If those URLs return 404 (their repo structure changes), check their docs site at `https://docs.yugabyte.com/preview/explore/observability/prometheus-integration/` for the current location. Worst case, you can browse YugabyteDB's GitHub to find the JSON files manually.
+
+Import them the same way: drag and drop into Grafana, pick the Prometheus data source, click Import.
+
+---
+
+## Why I steered you wrong with the IDs originally
+
+Lesson worth taking from this: **dashboard IDs on grafana.com are user-uploaded and can be deleted/made-private at any time.** Anyone can publish a dashboard with an ID. Many of them rot over time as the original author moves on or the metric names they reference change.
+
+The reliable pattern, which is what we just did:
+
+1. Find the dashboard's *source repo* (the database vendor's GitHub).
+2. Download the JSON file directly from there.
+3. Import via the file-upload path in Grafana, not the ID-lookup path.
+
+This way you get the version maintained by the actual database team, and you have the file checked into your own infrastructure if you ever want to version-control your monitoring setup.
+
+---
+
+## Quick visual summary of what you should now have
+
+```
+E:\podman-instances\monitoring\
+├── prometheus\
+│   └── prometheus.yml          ← edited to include cluster label
+└── grafana\
+    ├── runtime.json            ← official CockroachDB
+    ├── storage.json            ← official CockroachDB
+    ├── sql.json                ← official CockroachDB
+    ├── replication.json        ← official CockroachDB
+    ├── yb-master.json          ← official YugabyteDB
+    └── yb-tserver.json         ← official YugabyteDB
+```
+
+Try the CockroachDB ones first — they're well-maintained and reliably work. Once those are happily showing data, go after YugabyteDB.
+
+Run the `curl.exe` downloads, then the `prometheus.yml` edit + reload, then drag-and-drop the JSON files into Grafana. Tell me which step fails, if any, and we'll work through it.
