@@ -51,14 +51,14 @@ Why: each container gets its own IP on this network, and they can resolve each o
 Without this, nodes would have to use IPs that change.
 
 ```bash
-podman network create roachnet
+podman network create venkat-net
 ```
 
 Verify:
 
 ```bash
 podman network ls
-podman network inspect roachnet
+podman network inspect venkat-net
 ```
 
 Look at the `subnet` field — that's the IP range your containers will get. Typically something like `10.89.0.0/24`.
@@ -110,25 +110,25 @@ podman run -d --name=roach1 --hostname=roach1 --net=roachnet -p 26257:26257 -p 8
 **Start node 2:**
 
 ```bash
-podman run -d --name=roach2 --hostname=roach2 --net=roachnet -v roach2-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach2:26257 --http-addr=roach2:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach2 --hostname=roach2 --net=venkat-net -v roach2-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach2:26257 --http-addr=roach2:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 3:**
 
 ```bash
-podman run -d --name=roach3 --hostname=roach3 --net=roachnet -v roach3-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach3:26257 --http-addr=roach3:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach3 --hostname=roach3 --net=venkat-net -v roach3-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach3:26257 --http-addr=roach3:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 4:**
 
 ```bash
-podman run -d --name=roach4 --hostname=roach4 --net=roachnet -v roach4-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach4:26257 --http-addr=roach4:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach4 --hostname=roach4 --net=venkat-net -v roach4-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach4:26257 --http-addr=roach4:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 **Start node 5:**
 
 ```bash
-podman run -d --name=roach5 --hostname=roach5 --net=roachnet -v roach5-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach5:26257 --http-addr=roach5:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
+podman run -d --name=roach5 --hostname=roach5 --net=venkat-net -v roach5-data:/cockroach/cockroach-data cockroachdb/cockroach:latest start --insecure --listen-addr=roach5:26257 --http-addr=roach5:8080 --join=roach1:26257,roach2:26257,roach3:26257,roach4:26257,roach5:26257
 ```
 
 Confirm all 5 are running:
