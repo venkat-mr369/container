@@ -64,12 +64,10 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  # Scrape Prometheus itself (good for verifying things work)
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  # CockroachDB — all 5 nodes
   - job_name: 'cockroachdb'
     metrics_path: '/_status/vars'
     static_configs:
@@ -79,8 +77,9 @@ scrape_configs:
           - 'roach3:8080'
           - 'roach4:8080'
           - 'roach5:8080'
+        labels:
+          cluster: 'venkat-lab'
 
-  # YugabyteDB Master processes — only 3 of 5 nodes run masters (RF=3)
   - job_name: 'yugabyte-master'
     metrics_path: '/prometheus-metrics'
     static_configs:
@@ -90,10 +89,9 @@ scrape_configs:
           - 'yb3:7000'
           - 'yb4:7000'
           - 'yb5:7000'
-    # Some nodes won't have master running; Prometheus will mark them as "down"
-    # which is correct behavior — you'll see this in the targets page
+        labels:
+          cluster: 'venkat-lab'
 
-  # YugabyteDB TServer processes — all 5 nodes
   - job_name: 'yugabyte-tserver'
     metrics_path: '/prometheus-metrics'
     static_configs:
@@ -103,6 +101,8 @@ scrape_configs:
           - 'yb3:9000'
           - 'yb4:9000'
           - 'yb5:9000'
+        labels:
+          cluster: 'venkat-lab'
 ```
 
 **Why this structure:**
