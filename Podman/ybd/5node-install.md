@@ -85,7 +85,7 @@ This first node is special — it doesn't `--join` anything because it *is* the 
 **One-line PowerShell command:**
 
 ```powershell
-podman run -d --name=yb1 --hostname=yb1 --net=venkat-net -p 5433:5433 -p 7000:7000 -p 9000:9000 -p 15433:15433 -p 9042:9042 -v yb1-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb1 --hostname=yb1 --net=venkat-net -p 5433:5433 -p 7000:7000 -p 9000:9000 -p 15433:15433 -p 9042:9042 -v yb1-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.1.0-b141 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb1 --fault_tolerance=none --background=false
 ```
 
 What each new flag means:
@@ -111,25 +111,25 @@ Each of these uses `--join=yb1` to point at the seed. They don't publish ports t
 **Node 2:**
 
 ```powershell
-podman run -d --name=yb2 --hostname=yb2 --net=venkat-net -v yb2-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb2 --join=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb2 --hostname=yb2 --net=venkat-net -v yb2-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.1.0-b141 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb2 --join=yb1 --fault_tolerance=none --background=false
 ```
 
 **Node 3:**
 
 ```powershell
-podman run -d --name=yb3 --hostname=yb3 --net=ybnet -v yb3-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb3 --join=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb3 --hostname=yb3 --net=venkat-net -v yb3-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.1.0-b141 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb3 --join=yb1 --fault_tolerance=none --background=false
 ```
 
 **Node 4:**
 
 ```powershell
-podman run -d --name=yb3 --hostname=yb3 --net=venkat-net -v yb3-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb3 --join=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb4 --hostname=yb4 --net=venkat-net -v yb4-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.1.0-b141 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb4 --join=yb1 --fault_tolerance=none --background=false
 ```
 
 **Node 5:**
 
 ```powershell
-podman run -d --name=yb5 --hostname=yb5 --net=venkat-net -v yb5-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.2.1 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb5 --join=yb1 --fault_tolerance=none --background=false
+podman run -d --name=yb5 --hostname=yb5 --net=venkat-net -v yb5-data:/home/yugabyte/yb_data yugabytedb/yugabyte:2025.2.1.0-b141 bin/yugabyted start --base_dir=/home/yugabyte/yb_data --advertise_address=yb5 --join=yb1 --fault_tolerance=none --background=false
 ```
 
 Wait about 30 seconds for everything to converge, then verify:
@@ -190,8 +190,8 @@ Note the differences from CockroachDB:
 Once in the shell, try the same exercises:
 
 ```sql
-CREATE DATABASE bank;
-\c bank
+CREATE DATABASE yes;
+\c yes
 CREATE TABLE accounts (id INT PRIMARY KEY, balance DECIMAL);
 INSERT INTO accounts VALUES (1, 1000.50), (2, 250.00);
 SELECT * FROM accounts;
@@ -326,4 +326,4 @@ Try the steps in order, and once `podman ps` shows all 5 nodes up, paste the out
 podman exec -it yb1 bin/yugabyted status --base_dir=/home/yugabyte/yb_data
 ```
 
-We can then walk through what's interesting in there — particularly the master/tserver split — and you'll see the architectural difference become very concrete.
+
