@@ -1,19 +1,17 @@
-Got it — using `E:\podman-instances\monitoring` as your base. Here's the full reworked walkthrough with the updated paths.
-
 ---
 
-## What we're building
+### What we are building
 
 ```
                         venkat-net (Podman bridge)
    ┌──────────────────────────────────────────────────────────────┐
-   │                                                                │
-   │  CockroachDB (5 nodes)        YugabyteDB (5 nodes)             │
-   │  roach1...roach5              yb1...yb5                        │
-   │       │                            │                            │
-   │       │ exposes /_status/vars     │ exposes /prometheus-metrics│
-   │       │ on port 8080              │ on ports 7000 and 9000     │
-   │       └───────────┬────────────────┘                            │
+   │                                                                  │
+   │  CockroachDB (5 nodes)        YugabyteDB (5 nodes)               │
+   │  roach1...roach5              yb1...yb5                          │
+   │       │                            │                             │
+   │       │ exposes /_status/vars      │ exposes /prometheus-metrics │
+   │       │ on port 8080               │ on ports 7000 and 9000      │
+   │       └───────────┬────────────────┘                             │
    │                   │                                              │
    │                   ▼                                              │
    │           ┌──────────────┐                                       │
