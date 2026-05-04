@@ -283,15 +283,16 @@ podman exec -it scylla1 nodetool status
 ### Start scylla2 and scylla3
 
 ```powershell
-podman run -d --name scylla2 --hostname scylla2 --network venkat-net `
-  -v scylla2-data:/var/lib/scylla `
+podman run -d --name scylla1 --hostname scylla1 --network venkat-net `
+  -p 9043:9042 `
+  -v scylla1-data:/var/lib/scylla `
   scylladb/scylla:latest `
   --seeds=scylla1 `
   --smp 1 `
   --memory 1G `
   --overprovisioned 1 `
-  --cluster-name venkat-scylla `
-  --endpoint-snitch GossipingPropertyFileSnitch
+  --developer-mode 1 `
+  --cluster-name venkat-scylla
 ```
 
 Wait ~30 seconds:
@@ -304,8 +305,8 @@ podman run -d --name scylla3 --hostname scylla3 --network venkat-net `
   --smp 1 `
   --memory 1G `
   --overprovisioned 1 `
-  --cluster-name venkat-scylla `
-  --endpoint-snitch GossipingPropertyFileSnitch
+  --developer-mode 1 `
+  --cluster-name venkat-scylla
 ```
 
 ### What those flags mean
