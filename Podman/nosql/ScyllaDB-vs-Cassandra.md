@@ -21,8 +21,6 @@ This is why they're often discussed together — and why ScyllaDB markets itself
 
 ---
 
-## Where They Diverge
-
 ### 1. Implementation Language
 
 | | Cassandra | ScyllaDB |
@@ -111,7 +109,7 @@ Discord's 2023 migration story — moving trillions of messages from Cassandra t
 
 ---
 
-## Summary Table
+### Summary Table
 
 | Aspect | Cassandra | ScyllaDB |
 |--------|-----------|----------|
@@ -134,7 +132,7 @@ Discord's 2023 migration story — moving trillions of messages from Cassandra t
 
 I'll give you 3-node clusters for each, on the same `venkat-net` network so you can compare side by side.
 
-## Step 1: Create the network (if it doesn't exist)
+### Step 1: Create the network (if it doesn't exist)
 
 ```powershell
 podman network ls
@@ -146,7 +144,7 @@ If `venkat-net` isn't there:
 podman network create venkat-net
 ```
 
-## Step 2: Create persistent volumes
+### Step 2: Create persistent volumes
 
 ```powershell
 # Cassandra
@@ -162,7 +160,7 @@ podman volume create scylla3-data
 
 ---
 
-## Cassandra 3-Node Cluster
+### Cassandra 3-Node Cluster
 
 ### Start cass1 (the seed node)
 
