@@ -293,7 +293,7 @@ podman run -d `
 -p 3307:3306 `
 -v E:\podman-instances\mysql-mariadb\maxscale\maxscale.cnf:/etc/maxscale.cnf:ro `
 docker.io/mariadb/maxscale:24.02 `
-maxscale --user=root --nodaemon
+bash -c "apt update && apt install mariadb-client -y && maxscale --user=root --nodaemon"
 ```
 
 ---
