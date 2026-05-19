@@ -425,6 +425,31 @@ podman volume rm mariadb1-data mariadb2-data mariadb3-data maxscale-data
 
 ---
 
+#### If any Node fails, needs to rejoin Dont Boot Strap again 
+```
+podman run -d `
+--name mariadb1 `
+--hostname mariadb1 `
+--network venkat-net `
+-p 3306:3306 `
+-p 4567:4567 `
+-p 4568:4568 `
+-p 4444:4444 `
+-v mariadb1-data:/var/lib/mysql `
+-e MARIADB_ROOT_PASSWORD="Maria@123" `
+docker.io/library/mariadb:11.4 `
+--wsrep_on=ON `
+--wsrep_provider=/usr/lib/galera/libgalera_smm.so `
+--wsrep_cluster_name=galera_cluster `
+--wsrep_cluster_address=gcomm://mariadb2,mariadb3 `
+--wsrep_node_name=galera1 `
+--wsrep_node_address=mariadb1 `
+--binlog_format=ROW `
+--default-storage-engine=InnoDB `
+--innodb_autoinc_lock_mode=2 `
+--wsrep_sst_method=mariabackup `
+--wsrep_sst_auth=root:Maria@123
+```
 ### Architecture
 
 ```text
