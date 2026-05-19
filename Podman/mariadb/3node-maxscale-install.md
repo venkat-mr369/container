@@ -318,7 +318,20 @@ Expected:
 ### Connect Through MaxScale
 
 ```powershell
-mysql -h 127.0.0.1 -P 3307 -u maxuser -p
+podman exec -it mariadb1 mariadb -h maxscale -P 3306 -u maxuser -p
+```
+Output
+```
+PS C:\Users\venkat> podman exec -it mariadb1 mariadb -h maxscale -P 3306 -u maxuser -p
+Enter password:
+ERROR 2026 (HY000): TLS/SSL error: SSL is required, but the server does not support it
+PS C:\Users\venkat>
+```
+#### Disable SSL and connect 
+```
+podman exec -it mariadb1 mariadb --ssl=0 -h maxscale -P 3306 -u maxuser -p
+or
+podman exec -it mariadb1 mariadb --skip-ssl -h maxscale -P 3306 -u maxuser -p
 ```
 
 Password:
