@@ -333,6 +333,11 @@ podman exec -it mariadb1 mariadb --ssl=0 -h maxscale -P 3306 -u maxuser -p
 or
 podman exec -it mariadb1 mariadb --skip-ssl -h maxscale -P 3306 -u maxuser -p
 ```
+### Connect Through MaXScale Conteiner 
+```
+podman exec -it maxscale bash
+mariadb --skip-ssl -h maxscale -P 3306 -u maxuser -p
+```
 
 Password:
 
