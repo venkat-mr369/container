@@ -291,13 +291,18 @@ podman run -d `
 --hostname maxscale `
 --network venkat-net `
 -p 3307:3306 `
--v E:\podman-instances\mysql-mariadb\maxscale\maxscale.cnf:/etc/maxscale.cnf `
-docker.io/mariadb/maxscale:24.02
+-v E:\podman-instances\mysql-mariadb\maxscale\maxscale.cnf:/etc/maxscale.cnf:ro `
+docker.io/mariadb/maxscale:24.02 `
+maxscale --user=root --nodaemon
 ```
 
 ---
 
 ### Verify MaxScale
+```
+podman ps
+podman logs -f maxscale
+```
 
 ```powershell
 podman exec -it maxscale maxctrl list servers
