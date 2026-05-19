@@ -57,7 +57,7 @@ podman run -d \
 -p 4568:4568 \
 -p 4444:4444 \
 -v mariadb1-data:/var/lib/mysql:Z \
--e MARIADB_ROOT_PASSWORD='MariaDB@123' \
+-e MARIADB_ROOT_PASSWORD='Maria@123' \
 -e MARIADB_GALERA_CLUSTER_NAME='galera_cluster' \
 -e MARIADB_GALERA_CLUSTER_ADDRESS='gcomm://' \
 -e MARIADB_GALERA_MARIABACKUP_PASSWORD='backup123' \
@@ -96,7 +96,7 @@ podman run -d \
 --hostname mariadb2 \
 --network venkat-net \
 -v mariadb2-data:/var/lib/mysql:Z \
--e MARIADB_ROOT_PASSWORD='MariaDB@123' \
+-e MARIADB_ROOT_PASSWORD='Maria@123' \
 -e MARIADB_GALERA_CLUSTER_NAME='galera_cluster' \
 -e MARIADB_GALERA_CLUSTER_ADDRESS='gcomm://mariadb1' \
 -e MARIADB_GALERA_MARIABACKUP_PASSWORD='backup123' \
@@ -115,7 +115,7 @@ podman run -d \
 --hostname mariadb3 \
 --network venkat-net \
 -v mariadb3-data:/var/lib/mysql:Z \
--e MARIADB_ROOT_PASSWORD='MariaDB@123' \
+-e MARIADB_ROOT_PASSWORD='Maria@123' \
 -e MARIADB_GALERA_CLUSTER_NAME='galera_cluster' \
 -e MARIADB_GALERA_CLUSTER_ADDRESS='gcomm://mariadb1' \
 -e MARIADB_GALERA_MARIABACKUP_PASSWORD='backup123' \
