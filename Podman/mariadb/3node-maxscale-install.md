@@ -40,7 +40,7 @@ local       maxscale-data
 
 ```bash
 podman pull docker.io/mariadb:11.4
-podman pull docker.io/mariadb/maxscale:25.01.1
+podman pull docker.io/mariadb/maxscale:24.02
 ```
 
 ---
@@ -267,7 +267,7 @@ podman run -d \
 --network venkat-net \
 -p 3307:3306 \
 -v ~/maxscale/maxscale.cnf:/etc/maxscale.cnf:Z \
-docker.io/mariadb/maxscale:25.01.1
+docker.io/mariadb/maxscale:24.02
 ```
 
 ---
