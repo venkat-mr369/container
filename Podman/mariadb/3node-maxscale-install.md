@@ -44,118 +44,11 @@ mkdir E:\podman-instances\mysql-mariadb
 
 ---
 
-### Create Galera Config Directory
-
-```powershell
-mkdir E:\podman-instances\mysql-mariadb\galera-config
-```
-
----
-
 ### Create MaxScale Config Directory
 
 ```powershell
 mkdir E:\podman-instances\mysql-mariadb\maxscale
 ```
-
----
-
-# Create mariadb1 Galera Config
-
-```powershell
-notepad E:\podman-instances\mysql-mariadb\galera-config\mariadb1.cnf
-```
-
-Paste:
-
-```ini
-[mysqld]
-bind-address=0.0.0.0
-
-wsrep_on=ON
-wsrep_provider=/usr/lib/galera/libgalera_smm.so
-
-wsrep_cluster_name=galera_cluster
-wsrep_cluster_address=gcomm://
-
-wsrep_node_name=galera1
-wsrep_node_address=mariadb1
-
-binlog_format=ROW
-default_storage_engine=InnoDB
-innodb_autoinc_lock_mode=2
-
-wsrep_sst_method=mariabackup
-wsrep_sst_auth=root:Maria@123
-```
-
-Save and close.
-
----
-
-# Create mariadb2 Galera Config
-
-```powershell
-notepad E:\podman-instances\mysql-mariadb\galera-config\mariadb2.cnf
-```
-
-Paste:
-
-```ini
-[mysqld]
-bind-address=0.0.0.0
-
-wsrep_on=ON
-wsrep_provider=/usr/lib/galera/libgalera_smm.so
-
-wsrep_cluster_name=galera_cluster
-wsrep_cluster_address=gcomm://mariadb1
-
-wsrep_node_name=galera2
-wsrep_node_address=mariadb2
-
-binlog_format=ROW
-default_storage_engine=InnoDB
-innodb_autoinc_lock_mode=2
-
-wsrep_sst_method=mariabackup
-wsrep_sst_auth=root:Maria@123
-```
-
-Save and close.
-
----
-
-# Create mariadb3 Galera Config
-
-```powershell
-notepad E:\podman-instances\mysql-mariadb\galera-config\mariadb3.cnf
-```
-
-Paste:
-
-```ini
-[mysqld]
-bind-address=0.0.0.0
-
-wsrep_on=ON
-wsrep_provider=/usr/lib/galera/libgalera_smm.so
-
-wsrep_cluster_name=galera_cluster
-wsrep_cluster_address=gcomm://mariadb1
-
-wsrep_node_name=galera3
-wsrep_node_address=mariadb3
-
-binlog_format=ROW
-default_storage_engine=InnoDB
-innodb_autoinc_lock_mode=2
-
-wsrep_sst_method=mariabackup
-wsrep_sst_auth=root:Maria@123
-```
-
-Save and close.
 
 ---
 
@@ -168,7 +61,7 @@ podman pull docker.io/mariadb/maxscale:24.02
 
 ---
 
-# Start Bootstrap Node (mariadb1)
+### Start Bootstrap Node (mariadb1)
 
 ```powershell
 podman run -d `
@@ -180,15 +73,25 @@ podman run -d `
 -p 4568:4568 `
 -p 4444:4444 `
 -v mariadb1-data:/var/lib/mysql `
--v E:\podman-instances\mysql-mariadb\galera-config\mariadb1.cnf:/etc/mysql/conf.d/galera.cnf `
 -e MARIADB_ROOT_PASSWORD="Maria@123" `
 docker.io/mariadb:11.4 `
+--wsrep_on=ON `
+--wsrep_provider=/usr/lib/galera/libgalera_smm.so `
+--wsrep_cluster_name=galera_cluster `
+--wsrep_cluster_address=gcomm:// `
+--wsrep_node_name=galera1 `
+--wsrep_node_address=mariadb1 `
+--binlog_format=ROW `
+--default-storage-engine=InnoDB `
+--innodb_autoinc_lock_mode=2 `
+--wsrep_sst_method=mariabackup `
+--wsrep_sst_auth=root:Maria@123 `
 --wsrep-new-cluster
 ```
 
 ---
 
-### Verify mariadb1
+### Verify Bootstrap Node
 
 ```powershell
 podman logs -f mariadb1
@@ -196,9 +99,9 @@ podman logs -f mariadb1
 
 You should see:
 
-* WSREP messages
-* Cluster initialized
-* No `wsrep-provider disabled` error
+* WSREP initialized
+* Galera started
+* Cluster synced
 
 Stop logs:
 
@@ -234,7 +137,7 @@ exit
 
 ---
 
-# Start mariadb2
+### Start mariadb2
 
 ```powershell
 podman run -d `
@@ -242,14 +145,24 @@ podman run -d `
 --hostname mariadb2 `
 --network venkat-net `
 -v mariadb2-data:/var/lib/mysql `
--v E:\podman-instances\mysql-mariadb\galera-config\mariadb2.cnf:/etc/mysql/conf.d/galera.cnf `
 -e MARIADB_ROOT_PASSWORD="Maria@123" `
-docker.io/mariadb:11.4
+docker.io/mariadb:11.4 `
+--wsrep_on=ON `
+--wsrep_provider=/usr/lib/galera/libgalera_smm.so `
+--wsrep_cluster_name=galera_cluster `
+--wsrep_cluster_address=gcomm://mariadb1 `
+--wsrep_node_name=galera2 `
+--wsrep_node_address=mariadb2 `
+--binlog_format=ROW `
+--default-storage-engine=InnoDB `
+--innodb_autoinc_lock_mode=2 `
+--wsrep_sst_method=mariabackup `
+--wsrep_sst_auth=root:Maria@123
 ```
 
 ---
 
-# Start mariadb3
+### Start mariadb3
 
 ```powershell
 podman run -d `
@@ -257,9 +170,19 @@ podman run -d `
 --hostname mariadb3 `
 --network venkat-net `
 -v mariadb3-data:/var/lib/mysql `
--v E:\podman-instances\mysql-mariadb\galera-config\mariadb3.cnf:/etc/mysql/conf.d/galera.cnf `
 -e MARIADB_ROOT_PASSWORD="Maria@123" `
-docker.io/mariadb:11.4
+docker.io/mariadb:11.4 `
+--wsrep_on=ON `
+--wsrep_provider=/usr/lib/galera/libgalera_smm.so `
+--wsrep_cluster_name=galera_cluster `
+--wsrep_cluster_address=gcomm://mariadb1 `
+--wsrep_node_name=galera3 `
+--wsrep_node_address=mariadb3 `
+--binlog_format=ROW `
+--default-storage-engine=InnoDB `
+--innodb_autoinc_lock_mode=2 `
+--wsrep_sst_method=mariabackup `
+--wsrep_sst_auth=root:Maria@123
 ```
 
 ---
@@ -282,6 +205,8 @@ Expected:
 3
 ```
 
+Your cluster is now successfully working with 3 nodes. 
+
 ---
 
 ### Create MaxScale User
@@ -302,7 +227,7 @@ exit
 
 ---
 
-# Create MaxScale Config File
+### Create MaxScale Configuration File
 
 ```powershell
 notepad E:\podman-instances\mysql-mariadb\maxscale\maxscale.cnf
@@ -358,7 +283,7 @@ Save and close.
 
 ---
 
-# Start MaxScale
+### Start MaxScale
 
 ```powershell
 podman run -d `
@@ -410,6 +335,8 @@ Check from another node:
 ```powershell
 podman exec -it mariadb2 mariadb -uroot -p
 ```
+
+Run:
 
 ```sql
 SHOW DATABASES;
