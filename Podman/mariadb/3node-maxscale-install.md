@@ -48,22 +48,24 @@ podman pull docker.io/mariadb/maxscale:24.02
 ### Start Galera Bootstrap Node (mariadb1)
 
 ```bash
-podman run -d \
---name mariadb1 \
---hostname mariadb1 \
---network venkat-net \
--p 3306:3306 \
--p 4567:4567 \
--p 4568:4568 \
--p 4444:4444 \
--v mariadb1-data:/var/lib/mysql:Z \
--e MARIADB_ROOT_PASSWORD='Maria@123' \
--e MARIADB_GALERA_CLUSTER_NAME='galera_cluster' \
--e MARIADB_GALERA_CLUSTER_ADDRESS='gcomm://' \
--e MARIADB_GALERA_MARIABACKUP_PASSWORD='backup123' \
--e MARIADB_GALERA_NODE_ADDRESS='mariadb1' \
--e MARIADB_GALERA_NODE_NAME='galera1' \
+podman run -d `
+--name mariadb1 `
+--hostname mariadb1 `
+--network venkat-net `
+-p 3306:3306 `
+-p 4567:4567 `
+-p 4568:4568 `
+-p 4444:4444 `
+-v mariadb1-data:/var/lib/mysql:Z `
+-e MARIADB_ROOT_PASSWORD="Maria@123" `
+-e MARIADB_GALERA_CLUSTER_NAME="galera_cluster" `
+-e MARIADB_GALERA_CLUSTER_ADDRESS="gcomm://" `
+-e MARIADB_GALERA_MARIABACKUP_PASSWORD="backup123" `
+-e MARIADB_GALERA_NODE_ADDRESS="mariadb1" `
+-e MARIADB_GALERA_NODE_NAME="galera1" `
 docker.io/mariadb:11.4
+
+
 ```
 
 ---
@@ -91,17 +93,17 @@ CTRL + C
 ### Start mariadb2
 
 ```bash
-podman run -d \
---name mariadb2 \
---hostname mariadb2 \
---network venkat-net \
--v mariadb2-data:/var/lib/mysql:Z \
--e MARIADB_ROOT_PASSWORD='Maria@123' \
--e MARIADB_GALERA_CLUSTER_NAME='galera_cluster' \
--e MARIADB_GALERA_CLUSTER_ADDRESS='gcomm://mariadb1' \
--e MARIADB_GALERA_MARIABACKUP_PASSWORD='backup123' \
--e MARIADB_GALERA_NODE_ADDRESS='mariadb2' \
--e MARIADB_GALERA_NODE_NAME='galera2' \
+podman run -d `
+--name mariadb2 `
+--hostname mariadb2 `
+--network venkat-net `
+-v mariadb2-data:/var/lib/mysql:Z `
+-e MARIADB_ROOT_PASSWORD="Maria@123" `
+-e MARIADB_GALERA_CLUSTER_NAME="galera_cluster" `
+-e MARIADB_GALERA_CLUSTER_ADDRESS="gcomm://mariadb1" `
+-e MARIADB_GALERA_MARIABACKUP_PASSWORD="backup123" `
+-e MARIADB_GALERA_NODE_ADDRESS="mariadb2" `
+-e MARIADB_GALERA_NODE_NAME="galera2" `
 docker.io/mariadb:11.4
 ```
 
@@ -110,17 +112,17 @@ docker.io/mariadb:11.4
 ### Start mariadb3
 
 ```bash
-podman run -d \
---name mariadb3 \
---hostname mariadb3 \
---network venkat-net \
--v mariadb3-data:/var/lib/mysql:Z \
--e MARIADB_ROOT_PASSWORD='Maria@123' \
--e MARIADB_GALERA_CLUSTER_NAME='galera_cluster' \
--e MARIADB_GALERA_CLUSTER_ADDRESS='gcomm://mariadb1' \
--e MARIADB_GALERA_MARIABACKUP_PASSWORD='backup123' \
--e MARIADB_GALERA_NODE_ADDRESS='mariadb3' \
--e MARIADB_GALERA_NODE_NAME='galera3' \
+podman run -d `
+--name mariadb3 `
+--hostname mariadb3 `
+--network venkat-net `
+-v mariadb3-data:/var/lib/mysql:Z `
+-e MARIADB_ROOT_PASSWORD='Maria@123' `
+-e MARIADB_GALERA_CLUSTER_NAME='galera_cluster' `
+-e MARIADB_GALERA_CLUSTER_ADDRESS='gcomm://mariadb1' `
+-e MARIADB_GALERA_MARIABACKUP_PASSWORD='backup123' `
+-e MARIADB_GALERA_NODE_ADDRESS='mariadb3' `
+-e MARIADB_GALERA_NODE_NAME='galera3' `
 docker.io/mariadb:11.4
 ```
 
@@ -147,13 +149,13 @@ mariadb3
 Connect:
 
 ```bash
-podman exec -it mariadb1 mysql -uroot -p
+podman exec -it mariadb1 mariadb -uroot -p
 ```
 
 Password:
 
 ```text
-MariaDB@123
+Maria@123
 ```
 
 Run:
