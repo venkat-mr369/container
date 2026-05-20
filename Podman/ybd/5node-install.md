@@ -272,7 +272,7 @@ podman exec -it yb1 bash
 
 # Wipe everything and start over
 podman stop yb1 yb2 yb3 yb4 yb5
-podman rm yb1 yb2 yb3 yb4 yb5
+podman rm -f yb1 yb2 yb3 yb4 yb5
 podman volume rm yb1-data yb2-data yb3-data yb4-data yb5-data
 podman network rm venkat-net
 ```
