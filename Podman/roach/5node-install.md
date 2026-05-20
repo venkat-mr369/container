@@ -275,7 +275,7 @@ podman logs -f roach1
 
 # Completely wipe and start over
 podman stop roach1 roach2 roach3 roach4 roach5
-podman rm roach1 roach2 roach3 roach4 roach5
+podman rm -f roach1 roach2 roach3 roach4 roach5
 podman volume rm roach1-data roach2-data roach3-data roach4-data roach5-data
 podman network rm roachnet
 ```
