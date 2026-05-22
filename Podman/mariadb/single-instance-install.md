@@ -1,4 +1,4 @@
-#### single instance installation of mariadb 
+### Single Instance installation of mariadb 
 * replication
 * Galera
 * ProxySQL
