@@ -147,7 +147,7 @@ podman rm -f single-mariadb
 podman run -d `
 --name single-mariadb `
 --hostname single-mariadb `
---memory=2g `
+###--memory=2g `
 --cpus=2 `
 -p 3306:3306 `
 -e MARIADB_ROOT_PASSWORD=Root@123 `
