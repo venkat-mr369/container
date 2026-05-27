@@ -1,4 +1,7 @@
-Good practice splitting them up — that's exactly how a clean production setup looks (the main `my.cnf` has `!includedir /etc/mysql/conf.d/`, and each file owns one concern). Here's what goes in each, for **MySQL 8.0** on a dedicated server. Treat the sizes as starting points and scale to your RAM/cores/storage.
+Good practice splitting them up — that's exactly how a clean production setup looks (the main `my.cnf` has `!includedir /etc/mysql/conf.d/`, 
+and each file owns one concern). Here's what goes in each, for **MySQL 8.0** on a dedicated server. 
+
+Treat the sizes as starting points and scale to your RAM/cores/storage.
 
 /etc/mysql/conf.d/
 ├── tuning.cnf
