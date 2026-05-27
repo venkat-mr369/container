@@ -33,11 +33,7 @@ podman rm -f single-mysql
 Run new container:
 
 ```powershell
-podman run -d ^
---name single-mysql ^
--e MYSQL_ROOT_PASSWORD=root123 ^
--p 3306:3306 ^
-custom-mysql:8.4
+podman run -d --name single-mysql -e MYSQL_ROOT_PASSWORD=root123 -p 3306:3306 custom-mysql:8.4
 ```
 
 Connect to container:
