@@ -2,12 +2,13 @@ Good practice splitting them up — that's exactly how a clean production setup 
 and each file owns one concern). Here's what goes in each, for **MySQL 8.0** on a dedicated server. 
 
 Treat the sizes as starting points and scale to your RAM/cores/storage.
-
+```
 /etc/mysql/conf.d/
 ├── tuning.cnf
 ├── replication.cnf
 ├── innodb.cnf
 ├── security.cnf
+```
 **innodb.cnf** — the engine, where most of your performance and durability lives:
 
 ```ini
