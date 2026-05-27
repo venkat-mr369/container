@@ -53,7 +53,13 @@ or
 ```bash
 vim /etc/my.cnf
 ```
-
+```bash
+/etc/mysql/conf.d/
+├── tuning.cnf
+├── replication.cnf
+├── innodb.cnf
+├── security.cnf
+```
 Useful DBA troubleshooting packages included:
 
 * `vim` / `nano` → file editing
