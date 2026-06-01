@@ -295,4 +295,5 @@ mysql-rp1-data
 mysql-rp2-data
 ```
 
-and configure GTID replication. This approach keeps `/mysql-data` and `/mysql-conf` exactly as you wanted and avoids the official image overriding your custom data directory.
+and configure GTID replication. 
+This approach keeps `/mysql-data` and `/mysql-conf` exactly as you wanted and avoids the official image overriding your custom data directory.
