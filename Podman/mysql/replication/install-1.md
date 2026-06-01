@@ -136,7 +136,7 @@ podman volume ls
 ## Step 5: Create Network
 
 ```powershell
-podman network create mysql-net
+podman network create venkat-net
 ```
 
 ---
