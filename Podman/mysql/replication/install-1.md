@@ -272,7 +272,7 @@ GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
 FLUSH PRIVILEGES;
 ```
 
-```
+```sql
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'Welcome@123';
 ```
 
