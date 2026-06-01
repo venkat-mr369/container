@@ -54,8 +54,6 @@ gtid_mode=ON
 enforce_gtid_consistency=ON
 
 binlog_format=ROW
-
-skip-host-cache
 skip-name-resolve
 ```
 
