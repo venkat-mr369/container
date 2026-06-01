@@ -272,6 +272,10 @@ GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
 FLUSH PRIVILEGES;
 ```
 
+```
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'Welcome@123';
+```
+
 At this point, your **mysql-pr (Primary)** is ready.
 
 Then we create:
