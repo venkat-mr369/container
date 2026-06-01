@@ -49,10 +49,11 @@ pid-file=/mysql-data/mysql.pid
 log-error=/mysql-data/error.log
 
 log_bin=mysql-bin
-binlog_format=ROW
 
 gtid_mode=ON
 enforce_gtid_consistency=ON
+
+binlog_format=ROW
 
 skip-host-cache
 skip-name-resolve
